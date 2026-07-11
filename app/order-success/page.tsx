@@ -8,7 +8,7 @@ export default function OrderSuccessPage() {
       </h1>
 
       <p className="text-xl text-gray-600 mb-8">
-        Thank you for shopping with Boutique Bliss.
+        Thank you for shopping with Mazhai Boutique.
       </p>
 
       <p className="text-lg text-gray-500 mb-10">

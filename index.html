@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mazhai Boutique | Elegance in Every Thread</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    background:#fff8fb;
+    color:#333;
+}
+
+nav{
+    position:fixed;
+    top:0;
+    width:100%;
+    background:#fff;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 8%;
+    box-shadow:0 2px 15px rgba(0,0,0,.08);
+    z-index:999;
+}
+
+.logo{
+    font-size:30px;
+    font-weight:700;
+    color:#9b174c;
+}
+
+nav ul{
+    list-style:none;
+    display:flex;
+    gap:30px;
+}
+
+nav a{
+    text-decoration:none;
+    color:#444;
+    font-weight:500;
+}
+
+.hero{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    text-align:center;
+    color:white;
+    padding:20px;
+    background:
+    linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),
+    url("https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1600&q=80");
+    background-size:cover;
+    background-position:center;
+}
+
+.hero h1{
+    font-size:60px;
+    margin-bottom:20px;
+}
+
+.hero p{
+    max-width:700px;
+    font-size:22px;
+    line-height:1.7;
+}
+
+.btn{
+    margin-top:35px;
+    display:inline-block;
+    background:#b31d5b;
+    color:white;
+    padding:15px 40px;
+    border-radius:50px;
+    text-decoration:none;
+    transition:.3s;
+    font-weight:600;
+}
+
+.btn:hover{
+    background:#8d1246;
+}
+
+.section{
+    padding:80px 8%;
+}
+
+.title{
+    text-align:center;
+    font-size:40px;
+    margin-bottom:50px;
+    color:#9b174c;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:30px;
+}
+
+.card{
+    background:white;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.card img{
+    width:100%;
+    height:350px;
+    object-fit:cover;
+}
+
+.card h3{
+    padding:20px;
+    color:#9b174c;
+}
+
+.card p{
+    padding:0 20px 20px;
+    color:#666;
+}
+
+.about{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:50px;
+    align-items:center;
+}
+
+.about img{
+    width:100%;
+    border-radius:15px;
+}
+
+.about h2{
+    color:#9b174c;
+    margin-bottom:20px;
+}
+
+.about p{
+    line-height:1.8;
+}
+
+footer{
+    background:#8d1246;
+    color:white;
+    padding:60px 8%;
+}
+
+.footer-grid{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:50px;
+}
+
+.footer-grid img{
+    width:180px;
+    border-radius:10px;
+    background:white;
+    padding:10px;
+}
+
+footer a{
+    color:white;
+}
+
+.whatsapp{
+    position:fixed;
+    bottom:25px;
+    right:25px;
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    background:#25D366;
+    color:white;
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+    box-shadow:0 8px 20px rgba(0,0,0,.3);
+}
+
+@media(max-width:768px){
+
+nav{
+    flex-direction:column;
+    gap:15px;
+}
+
+nav ul{
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+.hero h1{
+    font-size:40px;
+}
+
+.hero p{
+    font-size:18px;
+}
+
+.about,
+.footer-grid{
+    grid-template-columns:1fr;
+}
+
+}
+</style>
+
+</head>
+
+<body>
+
+<nav>
+
+<div class="logo">
+Mazhai Boutique
+</div>
+
+<ul>
+<li><a href="#">Home</a></li>
+<li><a href="#collections">Collections</a></li>
+<li><a href="#about">About</a></li>
+<li><a href="#contact">Contact</a></li>
+</ul>
+
+</nav>
+
+<section class="hero">
+
+<h1>Mazhai Boutique</h1>
+
+<p>
+Elegance in Every Thread.
+Discover beautiful Sarees, Kurtis, Salwars and Designer Collections for every occasion.
+</p>
+
+<a class="btn" href="#collections">Explore Collection</a>
+
+</section>
+
+<section class="section" id="collections">
+
+<h2 class="title">Featured Collections</h2>
+
+<div class="cards">
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80">
+<h3>Silk Sarees</h3>
+<p>Premium silk sarees for weddings and special occasions.</p>
+</div>
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1583391733956-6c77a0a9b29b?auto=format&fit=crop&w=800&q=80">
+<h3>Designer Sarees</h3>
+<p>Modern and elegant collections for every celebration.</p>
+</div>
+
+<div class="card">
+<img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80">
+<h3>Ethnic Wear</h3>
+<p>Beautiful ethnic collections with premium quality fabrics.</p>
+</div>
+
+</div>
+
+</section>
+
+<section class="section" id="about">
+
+<div class="about">
+
+<div>
+
+<h2>About Mazhai Boutique</h2>
+
+<p>
+Mazhai Boutique offers carefully selected sarees, kurtis and ethnic wear that combine traditional elegance with modern fashion. We focus on quality, affordability and customer satisfaction.
+</p>
+
+<br>
+
+<a class="btn"
+target="_blank"
+href="https://maps.google.com/?q=6/1017+A+Mullai+Valagam,+EB+Colony,+Paramathi+Road,+Namakkal">
+📍 Get Directions
+</a>
+
+</div>
+
+<div>
+
+<img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=80">
+
+</div>
+
+</div>
+
+</section>
+
+<footer id="contact">
+
+<div class="footer-grid">
+
+<div>
+
+<h2>Mazhai Boutique</h2>
+
+<br>
+
+<h3>📍 Address</h3>
+
+<p>
+6/1017 - A Mullai Valagam,<br>
+EB Colony,<br>
+Paramathi Road,<br>
+Namakkal - 637001
+</p>
+
+<br>
+
+<h3>📞 Phone</h3>
+
+<p>
+<a href="tel:+919566914912">
++91 95669 14912
+</a>
+</p>
+
+<br>
+
+<h3>📍 Google Maps</h3>
+
+<p>
+<a target="_blank"
+href="https://maps.google.com/?q=6/1017+A+Mullai+Valagam,+EB+Colony,+Paramathi+Road,+Namakkal">
+Open Location
+</a>
+</p>
+
+<br>
+
+<h3>📷 Instagram</h3>
+
+<p>
+<a target="_blank"
+href="https://instagram.com/mazhai_boutique">
+@mazhai_boutique
+</a>
+</p>
+
+<br>
+
+<p>
+© 2026 Mazhai Boutique. All Rights Reserved.
+</p>
+
+</div>
+
+<div style="text-align:center">
+
+<h3>Follow us on Instagram</h3>
+
+<br>
+
+<img
+src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://instagram.com/mazhai_boutique"
+alt="Instagram QR Code">
+
+<br><br>
+
+<p>Scan to Follow</p>
+
+</div>
+
+</div>
+
+</footer>
+
+<a
+class="whatsapp"
+target="_blank"
+href="https://wa.me/919566914912">
+💬
+</a>
+
+</body>
+</html>

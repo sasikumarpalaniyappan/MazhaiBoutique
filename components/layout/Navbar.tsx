@@ -1,13 +1,24 @@
+import Link from "next/link";
+
 export default function Navbar() {
   return (
-    <nav className="bg-pink-100 shadow-md fixed top-[72px] left-0 w-full z-40">
-      <ul className="flex justify-center gap-10 py-4 font-medium">
-        <li>Men</li>
-        <li>Women</li>
-        <li>Kids</li>
-        <li>Kurtas</li>
-        <li>Sarees</li>
-        <li>Gifting</li>
+    <nav className="bg-white shadow-md fixed top-[72px] left-0 w-full z-40">
+      <ul className="flex justify-center gap-12 py-4 font-medium text-gray-700">
+        <li className="hover:text-pink-600 cursor-pointer transition">
+          <Link href="/#home">Home</Link>
+        </li>
+        <li className="hover:text-pink-600 cursor-pointer transition">
+          <Link href="/#collections">Collections</Link>
+        </li>
+        <li className="hover:text-pink-600 cursor-pointer transition">
+          <Link href="/#featured">Featured</Link>
+        </li>
+        <li className="hover:text-pink-600 cursor-pointer transition">
+          <Link href="/#about">About</Link>
+        </li>
+        <li className="hover:text-pink-600 cursor-pointer transition">
+          <Link href="/#contact">Contact</Link>
+        </li>
       </ul>
     </nav>
   );

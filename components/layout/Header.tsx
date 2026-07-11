@@ -64,8 +64,8 @@ export default function Header() {
 
           {/* Logo */}
           <Link href="/">
-            <h1 className="text-2xl font-bold text-pink-600 cursor-pointer">
-              Boutique Bliss
+            <h1 className="text-3xl font-black text-pink-600 cursor-pointer" style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontWeight: 900 }}>
+              Mazhai Boutique
             </h1>
           </Link>
 
@@ -80,33 +80,25 @@ export default function Header() {
               🔍
             </button>
 
-            {/* Wishlist */}
-            <Link
-              href="/wishlist"
-              className="relative w-10 h-10 flex items-center justify-center"
-            >
+            {/* Wishlist Icon */}
+            <div className="relative w-10 h-10 flex items-center justify-center">
               <span className="text-2xl">❤️</span>
-
               {totalWishlistItems > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 bg-pink-600 text-white text-xs rounded-full flex items-center justify-center">
                   {totalWishlistItems}
                 </span>
               )}
-            </Link>
+            </div>
 
-            {/* Cart */}
-            <Link
-              href="/cart"
-              className="relative w-10 h-10 flex items-center justify-center"
-            >
+            {/* Cart Icon */}
+            <div className="relative w-10 h-10 flex items-center justify-center">
               <span className="text-2xl">🛒</span>
-
               {totalCartItems > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 bg-pink-600 text-white text-xs rounded-full flex items-center justify-center">
                   {totalCartItems}
                 </span>
               )}
-            </Link>
+            </div>
 
             {/* Profile */}
             <div className="relative">
@@ -128,13 +120,6 @@ export default function Header() {
                         className="block px-4 py-3 hover:bg-pink-50"
                       >
                         👤 My Profile
-                      </Link>
-
-                      <Link
-                        href="/orders"
-                        className="block px-4 py-3 hover:bg-pink-50"
-                      >
-                        📦 My Orders
                       </Link>
 
                       <button
