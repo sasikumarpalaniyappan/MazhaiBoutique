@@ -7,7 +7,7 @@ export default function Home() {
       {/* HOME SECTION */}
       <section id="home" className="relative w-full h-screen flex items-center justify-center mt-0 overflow-hidden">
         <img
-          src="https://img.magnific.com/free-photo/beautiful-young-woman-wearing-sari_23-2149502992.jpg?semt=ais_hybrid&w=740&q=80"
+          src="https://svahabyalokolkata.in/cdn/shop/files/DSC0066_1.jpg?v=1712766941&width=1946"
           alt="Hero Background"
           className="absolute inset-0 w-full h-full object-cover"
         />
