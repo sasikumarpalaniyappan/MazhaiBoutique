@@ -1,10 +1,11 @@
 "use client";
 
-import { useWishlist } from "@/components/context/WishlistProviderTemp";
 import { useCart } from "@/components/context/CartContext";
+import { useFavorites } from "@/components/context/FavoritesContext";
+import { products } from "@/components/data/products";
 
 export default function WishlistPage() {
-  const { wishlistItems, removeFromWishlist } = useWishlist();
+  const { favoriteIds, toggleFavorite } = useFavorites();
   const { addToCart } = useCart();
 
   return (
@@ -13,60 +14,63 @@ export default function WishlistPage() {
         My Wishlist
       </h1>
 
-      {wishlistItems.length === 0 ? (
+      {favoriteIds.length === 0 ? (
         <p className="text-gray-500 text-lg">
           Your wishlist is empty.
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {wishlistItems.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-xl shadow-md overflow-hidden"
-            >
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-full h-72 object-cover"
-              />
+          {favoriteIds.map((favoriteId) => {
+            const item = products.find((product) => product.id === favoriteId);
 
-              <div className="p-4">
-                <h2 className="text-lg font-semibold">
-                  {item.name}
-                </h2>
+            if (!item) return null;
 
-                <p className="text-pink-600 font-bold text-xl mt-2">
-                  {item.price}
-                </p>
+            return (
+              <div
+                key={item.id}
+                className="bg-white rounded-xl shadow-md overflow-hidden"
+              >
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-full h-72 object-cover"
+                />
 
-                {/* Move to Cart */}
-                <button
-                  onClick={() => {
-                    addToCart({
-                      id: item.id,
-                      name: item.name,
-                      price: item.price,
-                      image: item.image,
-                      quantity: 1,
-                    })
+                <div className="p-4">
+                  <h2 className="text-lg font-semibold">
+                    {item.name}
+                  </h2>
 
-                     removeFromWishlist(item.id);
-                  }}
-                  className="w-full mt-4 bg-pink-600 text-white py-2 rounded-lg hover:bg-pink-700"
-                >
-                  Move to Cart
-                </button>
+                  <p className="text-pink-600 font-bold text-xl mt-2">
+                    {item.price}
+                  </p>
 
-                {/* Remove from Wishlist */}
-                <button
-                  onClick={() => removeFromWishlist(item.id)}
-                  className="w-full mt-2 border border-red-500 text-red-500 py-2 rounded-lg hover:bg-red-50"
-                >
-                  Remove from Wishlist
-                </button>
+                  <button
+                    onClick={() => {
+                      addToCart({
+                        id: String(item.id),
+                        name: item.name,
+                        price: item.price,
+                        image: item.image,
+                        quantity: 1,
+                      });
+                      toggleFavorite(item.id);
+                    }}
+                    className="w-full mt-4 bg-pink-600 text-white py-2 rounded-lg hover:bg-pink-700"
+                  >
+                    Move to Cart
+                  </button>
+
+                  <button
+                    onClick={() => toggleFavorite(item.id)}
+                    className="w-full mt-2 border border-red-500 text-red-500 py-2 rounded-lg hover:bg-red-50"
+                  >
+                    Remove from Favorites
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

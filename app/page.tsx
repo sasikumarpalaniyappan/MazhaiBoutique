@@ -1,4 +1,3 @@
-import CategorySection from "@/components/CategorySection";
 import FeaturedProducts from "@/components/FeaturedProducts";
 
 export default function Home() {
@@ -29,15 +28,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* COLLECTIONS SECTION */}
-      <section id="collections" className="max-w-7xl mx-auto px-6 py-20 scroll-mt-40">
-        <h2 className="text-4xl font-bold text-center text-pink-600 mb-12" style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}>
-          Our Collections
-        </h2>
-        <CategorySection />
-        <div id="featured" className="mt-16 scroll-mt-40">
-          <FeaturedProducts />
-        </div>
+      <section id="featured" className="mx-auto max-w-7xl px-6 pb-20 pt-8 scroll-mt-40 sm:pt-12">
+        <FeaturedProducts />
       </section>
 
       {/* ABOUT SECTION */}

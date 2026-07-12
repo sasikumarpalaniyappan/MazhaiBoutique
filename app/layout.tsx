@@ -3,7 +3,8 @@ import Header from "../components/layout/Header";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { CartProvider } from "@/components/context/CartContext";
-import { WishlistProvider } from "@/components/context/WishlistProviderTemp";
+import { FavoritesProvider } from "@/components/context/FavoritesContext";
+import { ProductsProvider } from "@/components/context/ProductsContext";
 
 export const metadata = {
   title: "Mazhai Boutique",
@@ -34,16 +35,18 @@ export default function RootLayout({
       </head>
       <body style={{ fontFamily: "'Poppins', sans-serif" }}>
   <CartProvider>
-    <WishlistProvider>
-      <Header />
-      <Navbar />
+    <FavoritesProvider>
+      <ProductsProvider>
+        <Header />
+        <Navbar />
 
-      <main className="pt-40">
-        {children}
-      </main>
+        <main className="pt-40">
+          {children}
+        </main>
 
-      <Footer />
-    </WishlistProvider>
+        <Footer />
+      </ProductsProvider>
+    </FavoritesProvider>
   </CartProvider>
 </body>
     </html>
