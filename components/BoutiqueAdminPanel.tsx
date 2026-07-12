@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import {
+  CatalogProduct,
   fallbackProducts,
   mergeProductsWithFallback,
   STORAGE_EVENT,
@@ -18,16 +19,8 @@ type ProductCategory =
   | "Dupattas"
   | "Jewelry";
 
-type BoutiqueProduct = {
-  id: string;
-  title: string;
-  description: string;
+type BoutiqueProduct = Omit<CatalogProduct, "category"> & {
   category: ProductCategory;
-  originalPrice: string;
-  salePrice?: string;
-  sizes: ProductSize[];
-  thumbnailImage: string;
-  galleryImages: string[];
 };
 
 type ProductFormState = {
@@ -58,6 +51,11 @@ const emptyFormState = (): ProductFormState => ({
   originalPrice: "",
   salePrice: "",
   sizes: [],
+});
+
+const toBoutiqueProduct = (product: CatalogProduct): BoutiqueProduct => ({
+  ...product,
+  category: (product.category as ProductCategory) || "Sarees",
 });
 
 const fileToBase64 = (file: File) =>
@@ -94,12 +92,12 @@ export default function BoutiqueAdminPanel() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        setProducts(mergeProductsWithFallback(parsed));
+        setProducts(mergeProductsWithFallback(parsed).map(toBoutiqueProduct));
       } else {
-        setProducts(fallbackProducts);
+        setProducts(fallbackProducts.map(toBoutiqueProduct));
       }
     } catch {
-      setProducts(fallbackProducts);
+      setProducts(fallbackProducts.map(toBoutiqueProduct));
     }
   }, []);
 
@@ -150,7 +148,7 @@ export default function BoutiqueAdminPanel() {
       category: product.category,
       originalPrice: product.originalPrice,
       salePrice: product.salePrice || "",
-      sizes: product.sizes,
+      sizes: product.sizes as ProductSize[],
     });
     setThumbnailImage(product.thumbnailImage);
     setGalleryImages(product.galleryImages);
@@ -311,8 +309,6 @@ export default function BoutiqueAdminPanel() {
               multiple
               className="hidden"
               onChange={handleFolderUpload}
-              webkitdirectory=""
-              directory=""
             />
           </label>
           <button
