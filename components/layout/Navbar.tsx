@@ -8,7 +8,7 @@ export default function Navbar() {
           <Link href="/#home">Home</Link>
         </li>
         <li className="hover:text-pink-600 cursor-pointer transition">
-          <Link href="/#collections">Collections</Link>
+          <Link href="/#featured">Collections</Link>
         </li>
         <li className="hover:text-pink-600 cursor-pointer transition">
           <Link href="/#featured">Featured</Link>

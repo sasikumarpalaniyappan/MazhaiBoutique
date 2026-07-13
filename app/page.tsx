@@ -1,15 +1,12 @@
 import FeaturedProducts from "@/components/FeaturedProducts";
+import HeroCarousel from "@/components/HeroCarousel";
 
 export default function Home() {
   return (
     <main className="scroll-smooth">
       {/* HOME SECTION */}
       <section id="home" className="relative w-full h-screen flex items-center justify-center mt-0 overflow-hidden">
-        <img
-          src="https://svahabyalokolkata.in/cdn/shop/files/DSC0066_1.jpg?v=1712766941&width=1946"
-          alt="Hero Background"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        <HeroCarousel />
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="relative text-center text-white px-6 z-10">
           <h1 className="text-6xl font-bold mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -21,7 +18,7 @@ export default function Home() {
           </p>
           
           <div className="flex items-center justify-center">
-            <a href="#collections" className="inline-block bg-pink-600 hover:bg-pink-700 text-white font-bold px-8 py-3 rounded-full text-lg cursor-pointer">
+            <a href="#featured" className="inline-block bg-pink-600 hover:bg-pink-700 text-white font-bold px-8 py-3 rounded-full text-lg cursor-pointer">
               Explore Collection
             </a>
           </div>

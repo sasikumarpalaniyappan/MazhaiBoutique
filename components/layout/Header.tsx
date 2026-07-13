@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -15,43 +15,9 @@ export default function Header() {
   const { favoriteCount, favoriteIds, toggleFavorite } = useFavorites();
   const { products } = useProducts();
 
-  const [showSearch, setShowSearch] = useState(false);
-  const [search, setSearch] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
-
-  const [user, setUser] = useState<any>(null);
-  const [showProfile, setShowProfile] = useState(false);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
 
-  useEffect(() => {
-    const loadUser = () => {
-      const loggedUser = localStorage.getItem("loggedInUser");
-
-      if (loggedUser) {
-        setUser(JSON.parse(loggedUser));
-      } else {
-        setUser(null);
-      }
-    };
-
-    loadUser();
-
-    window.addEventListener("focus", loadUser);
-    window.addEventListener("storage", loadUser);
-
-    return () => {
-      window.removeEventListener("focus", loadUser);
-      window.removeEventListener("storage", loadUser);
-    };
-  }, []);
-
-  const logout = () => {
-    localStorage.removeItem("loggedInUser");
-
-    alert("Logged out successfully!");
-
-    window.location.replace("/");
-  };
 
   const totalCartItems = cartItems.reduce(
     (total, item) => total + item.quantity,
@@ -82,15 +48,7 @@ export default function Header() {
           {/* Right Side */}
           <div className="flex items-center gap-6">
 
-            {/* Search */}
-            <button
-              onClick={() => setShowSearch(!showSearch)}
-              className="text-2xl"
-            >
-              🔍
-            </button>
-
-            {/* Favorites Icon */}
+              {/* Favorites Icon */}
             <button
               type="button"
               onClick={() => setIsFavoritesOpen(true)}
@@ -118,65 +76,10 @@ export default function Header() {
               )}
             </button>
 
-            {/* Profile */}
-            <div className="relative">
-
-              {user ? (
-                <>
-                  <button
-                    onClick={() => setShowProfile(!showProfile)}
-                    className="font-semibold text-pink-600 hover:text-pink-700"
-                  >
-                    Hi, {user.name} 👋
-                  </button>
-
-                  {showProfile && (
-                    <div className="absolute right-0 mt-3 w-56 bg-white border rounded-lg shadow-lg">
-
-                      <Link
-                        href="/profile"
-                        className="block px-4 py-3 hover:bg-pink-50"
-                      >
-                        👤 My Profile
-                      </Link>
-
-                      <button
-                        onClick={logout}
-                        className="w-full text-left px-4 py-3 text-red-600 hover:bg-pink-50"
-                      >
-                        🚪 Logout
-                      </button>
-
-                    </div>
-                  )}
-                </>
-              ) : (
-                <Link
-                  href="/login"
-                  className="text-2xl hover:scale-110 transition"
-                >
-                  👤
-                </Link>
-              )}
-
-            </div>
-
           </div>
         </div>
 
-        {/* Search Bar */}
-        {showSearch && (
-          <div className="mt-4">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full border border-pink-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
-            />
-          </div>
-        )}
-
+  
       </div>
 
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
