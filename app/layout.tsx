@@ -38,9 +38,8 @@ export default function RootLayout({
     <FavoritesProvider>
       <ProductsProvider>
         <Header />
-        <Navbar />
 
-        <main>
+        <main className="scroll-smooth pt-[100px]">
           {children}
         </main>
 

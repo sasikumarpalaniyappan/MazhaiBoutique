@@ -1,31 +1,29 @@
-"use client";
-
-import { useParams } from "next/navigation";
 import ProductDetailPage from "@/components/ProductDetailPage";
-import { useProducts } from "@/components/context/ProductsContext";
+import { products as seedProducts } from "@/components/data/products";
 
-export default function ProductPage() {
-  const params = useParams<{ id: string }>();
-  const { products, isLoaded } = useProducts();
+export default async function ProductPage({ params }: { params: { id: string } | Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const id = resolvedParams?.id;
 
-  const id = params?.id;
-  const product = products.find((item) => String(item.id) === String(id));
-
-  if (!isLoaded) {
-    return <div className="mt-24 text-center text-gray-600">Loading product details...</div>;
-  }
+  const product = seedProducts.find((item) => String(item.id) === String(id));
 
   if (!product) {
-    return <h1 className="mt-20 text-center text-2xl">Product not found</h1>;
+    return (
+      <div className="mt-20 text-center">
+        <h1 className="text-2xl font-semibold">Product not found</h1>
+        <p className="mt-4 text-sm text-gray-600">Requested id: {String(id)}</p>
+        <p className="mt-2 text-sm text-gray-500">Available ids: {seedProducts.map((p) => String(p.id)).join(", ")}</p>
+      </div>
+    );
   }
 
   const detailProduct = {
-    id: product.id,
-    name: product.title,
-    price: product.salePrice || product.originalPrice || product.price || "—",
-    description: product.description || "A beautifully crafted piece from Mazhai Boutique.",
-    images: [product.thumbnailImage, ...(product.galleryImages || [])].filter(Boolean) as string[],
-    sizes: product.sizes?.length ? product.sizes : ["Standard"],
+    id: String(product.id),
+    name: product.name,
+    price: product.price,
+    description: "A beautifully crafted piece from Mazhai Boutique.",
+    images: [product.image].filter(Boolean) as string[],
+    sizes: ["Standard"],
   };
 
   return <ProductDetailPage product={detailProduct} />;

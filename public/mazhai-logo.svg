@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="220" height="80" viewBox="0 0 220 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0%" stop-color="#a56b39"/>
+      <stop offset="100%" stop-color="#7a4b2a"/>
+    </linearGradient>
+    <style>
+      .brand { font-family: 'Cormorant, serif', serif; font-weight: 700; font-size: 26px; fill: url(#g); }
+      .tag { font-family: Inter, Arial, sans-serif; font-size: 10px; fill: #b57a57; }
+    </style>
+  </defs>
+  <g>
+    <text x="18" y="36" class="brand">MB</text>
+    <text x="60" y="30" class="brand">Mazhai Boutique</text>
+    <text x="60" y="48" class="tag">Dress classy · Feel sassy</text>
+  </g>
+</svg>
