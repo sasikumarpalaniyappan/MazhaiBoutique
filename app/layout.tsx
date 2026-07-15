@@ -19,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link
           href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Cormorant:ital,wght@1,400;1,700&display=swap"
           rel="stylesheet"
@@ -39,7 +40,7 @@ export default function RootLayout({
       <ProductsProvider>
         <Header />
 
-        <main className="scroll-smooth pt-[100px]">
+        <main className="scroll-smooth pt-20 sm:pt-[100px]">
           {children}
         </main>
 

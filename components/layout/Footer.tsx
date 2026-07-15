@@ -3,25 +3,25 @@
 export default function Footer() {
   return (
     <footer id="contact" className="mt-10 border-t border-slate-200 bg-slate-50/80 text-slate-700">
-      <div className="mx-auto max-w-7xl px-6 py-6 sm:py-8">
-        <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr_1.2fr]">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[1.2fr_0.8fr_1.2fr]">
           <div>
             <h2
-              className="text-2xl font-semibold tracking-wide text-slate-900"
+              className="text-lg sm:text-2xl font-semibold tracking-wide text-slate-900"
               style={{ fontFamily: "Cormorant, serif", fontStyle: "italic" }}
             >
               Mazhai Boutique
             </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
+            <p className="mt-2 text-xs sm:text-sm leading-6 text-slate-600">
               Elegant essentials for timeless occasions and modern celebrations.
             </p>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">
+            <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">
               Quick Links
             </h3>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600">
+            <ul className="mt-3 space-y-2 text-xs sm:text-sm text-slate-600">
               <li><a href="/" className="transition hover:text-rose-600">Home</a></li>
               <li><a href="/#featured" className="transition hover:text-rose-600">Collections</a></li>
               <li><a href="/about" className="transition hover:text-rose-600">About</a></li>
@@ -30,15 +30,15 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">
+            <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">
               Connect
             </h3>
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-600">
+            <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600">
               <a
                 href="https://maps.google.com/?q=6/1017+A+Mullai+Valagam+Namakkal"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-300 hover:text-rose-600"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-300 hover:text-rose-600 flex-shrink-0"
                 aria-label="Open location"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
@@ -51,7 +51,7 @@ export default function Footer() {
                 href="https://wa.me/919566914912"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-300 hover:text-rose-600"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-300 hover:text-rose-600 flex-shrink-0"
                 aria-label="Open WhatsApp"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
@@ -63,7 +63,7 @@ export default function Footer() {
                 href="https://instagram.com/mazhai_boutique"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-300 hover:text-rose-600"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-300 hover:text-rose-600 flex-shrink-0"
                 aria-label="Open Instagram"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
@@ -73,7 +73,7 @@ export default function Footer() {
                 </svg>
               </a>
 
-              <a href="tel:+919566914912" className="text-sm text-slate-600 transition hover:text-rose-600">
+              <a href="tel:+919566914912" className="text-xs sm:text-sm text-slate-600 transition hover:text-rose-600 whitespace-nowrap">
                 +91 95669 14912
               </a>
             </div>
@@ -81,7 +81,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-slate-200 px-6 py-3 text-center text-xs text-slate-500">
+      <div className="border-t border-slate-200 px-4 sm:px-6 py-3 text-center text-xs text-slate-500">
         © 2026 Mazhai Boutique. All Rights Reserved.
       </div>
     </footer>

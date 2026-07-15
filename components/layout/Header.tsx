@@ -20,6 +20,7 @@ export default function Header() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Home");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { label: "Home", href: "/#home" },
@@ -49,26 +50,31 @@ export default function Header() {
     router.push(`/products/${favoriteId}`);
   };
 
+  const handleNavClick = (label: string) => {
+    setActiveNav(label);
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
-      <div className="max-w-7xl mx-auto px-6 h-[100px]">
-
-        <div className="flex items-center justify-between gap-4 h-full">
-
+      <div className="w-full px-3 sm:px-6 h-20 sm:h-[100px]">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 h-full">
+          {/* Logo */}
           <Link href="/" className="flex h-full items-center flex-shrink-0 overflow-hidden">
-            <img src="/mazhai-logo-exact.jpeg" alt="Mazhai Boutique logo" className="block h-full w-auto max-w-[580px] object-contain" />
+            <img src="/mazhai-logo-exact.jpeg" alt="Mazhai Boutique logo" className="block h-full w-auto max-w-[200px] sm:max-w-[580px] object-contain" />
           </Link>
 
-          <nav className="flex flex-1 justify-center min-w-[240px]">
-            <ul className="flex items-center justify-center gap-4">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex flex-1 justify-center min-w-[240px]">
+            <ul className="flex items-center justify-center gap-2 lg:gap-4">
               {navItems.map((item) => {
                 const isActive = activeNav === item.label;
                 return (
                   <li key={item.label}>
                     <Link
                       href={item.href}
-                      onClick={() => setActiveNav(item.label)}
-                      className={`inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-medium transition-shadow ${
+                      onClick={() => handleNavClick(item.label)}
+                      className={`inline-flex items-center justify-center rounded-full px-3 lg:px-5 py-2 text-xs lg:text-sm font-medium transition-shadow whitespace-nowrap ${
                           isActive
                             ? "bg-pink-600 text-white shadow-lg"
                             : "bg-pink-50 border-2 border-pink-200 text-pink-700 hover:shadow-md"
@@ -82,13 +88,14 @@ export default function Header() {
             </ul>
           </nav>
 
-          <div className="flex items-center gap-6">
+          {/* Cart and Favorites Icons */}
+          <div className="flex items-center gap-2 sm:gap-6">
             <button
               type="button"
               onClick={() => setIsFavoritesOpen(true)}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full px-2 text-sm font-medium transition-shadow bg-pink-50 border-2 border-pink-200 text-pink-700 hover:shadow-md"
+              className="relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-shadow bg-pink-50 border-2 border-pink-200 text-pink-700 hover:shadow-md flex-shrink-0"
             >
-              <HeartIcon size={18} strokeClass="stroke-pink-600" fillClass="fill-pink-100" />
+              <HeartIcon size={16} strokeClass="stroke-pink-600" fillClass="fill-pink-100" />
               {totalWishlistItems > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-600 px-1 text-xs text-white">
                   {totalWishlistItems}
@@ -99,20 +106,56 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setIsCartOpen(true)}
-              className={`relative flex h-10 w-10 items-center justify-center rounded-full px-2 text-sm font-medium transition-shadow ${
+              className={`relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-shadow flex-shrink-0 ${
                 isCartOpen ? "bg-pink-600 text-white shadow-lg" : "bg-pink-50 border-2 border-pink-200 text-pink-700 hover:shadow-md"
               }`}
             >
-              <CartIcon size={20} />
+              <CartIcon size={18} />
               {totalCartItems > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-600 px-1 text-xs text-white">
                   {totalCartItems}
                 </span>
               )}
             </button>
+
+            {/* Mobile Menu Button */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden flex h-9 w-9 items-center justify-center rounded-full bg-pink-50 border-2 border-pink-200 text-pink-700 flex-shrink-0"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+              </svg>
+            </button>
           </div>
         </div>
 
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <nav className="md:hidden border-t border-pink-100 bg-white">
+            <ul className="flex flex-col py-3">
+              {navItems.map((item) => {
+                const isActive = activeNav === item.label;
+                return (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href}
+                      onClick={() => handleNavClick(item.label)}
+                      className={`block px-4 py-2.5 text-sm font-medium transition-colors ${
+                          isActive
+                            ? "bg-pink-50 text-pink-600 border-l-4 border-pink-600"
+                            : "text-gray-700 hover:bg-pink-50"
+                        }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        )}
       </div>
 
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
