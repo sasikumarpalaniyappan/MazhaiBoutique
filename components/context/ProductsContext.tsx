@@ -7,6 +7,8 @@ import {
   useMemo,
   useState,
 } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { products as fallbackSeedProducts } from "@/components/data/products";
 
 export const STORAGE_KEY = "mazhai-boutique-products";
@@ -96,17 +98,104 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const loadProducts = () => {
-      try {
-        const saved = window.localStorage.getItem(STORAGE_KEY);
+    const loadProducts = async () => {
+      // If Firestore isn't initialized (missing env or SSR), fall back to local storage or bundled data
+      if (!db) {
+        console.log("ProductsContext: Firestore not initialized; using localStorage/fallback");
+        try {
+          const saved = window.localStorage.getItem(STORAGE_KEY);
 
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          setProducts(mergeProductsWithFallback(parsed));
-        } else {
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            setProducts(mergeProductsWithFallback(parsed));
+          } else {
+            setProducts(fallbackProducts);
+          }
+        } catch {
           setProducts(fallbackProducts);
+        } finally {
+          setIsLoaded(true);
         }
-      } catch {
+
+        return;
+      }
+
+      if (!navigator.onLine) {
+        console.log("ProductsContext: Offline mode detected; using fallback products");
+        setProducts(fallbackProducts);
+        setIsLoaded(true);
+        return;
+      }
+
+      try {
+        const collectionNames = ["products", "Products", "product", "Product", "items", "Items"];
+        let querySnapshot = null;
+        let foundCollection = "products";
+
+        for (const name of collectionNames) {
+          const snapshot = await getDocs(collection(db, name));
+          if (snapshot.size > 0) {
+            querySnapshot = snapshot;
+            foundCollection = name;
+            break;
+          }
+        }
+
+        if (!querySnapshot || querySnapshot.size === 0) {
+          console.log("ProductsContext: Firestore returned no documents for known collections; using fallback", {
+            triedCollections: collectionNames,
+          });
+          if (typeof window !== "undefined") {
+            (window as any).__productsSource = "fallback";
+            (window as any).__productsSourceReason = "firestore-no-docs";
+            (window as any).__productsSourceCollections = collectionNames;
+          }
+          setProducts(fallbackProducts);
+          return;
+        }
+
+        const firebaseProducts = querySnapshot.docs.map((doc) => {
+          const data = doc.data() as any;
+          const rawPrice = data.price ?? data["price "] ?? data["price"] ?? data["price"];
+          const rawImage = data.image ?? data["image"] ?? data["image "];
+          const rawName = data.name ?? data["name"] ?? data["name "];
+          const rawCategory = data.category ?? data["category"] ?? data["category "];
+
+          return {
+            id: doc.id,
+            title: rawName || "Untitled Product",
+            description: "",
+            category: rawCategory || "Sarees",
+            originalPrice: String(rawPrice ?? 0),
+            sizes: [],
+            thumbnailImage: String(rawImage || ""),
+            galleryImages: [],
+            name: rawName,
+            price: String(rawPrice ?? 0),
+            image: String(rawImage || ""),
+          } as CatalogProduct;
+        });
+
+        console.log("ProductsContext: Loaded from Firestore", {
+          collection: foundCollection,
+          count: firebaseProducts.length,
+          docs: querySnapshot.docs.length,
+          firstDocId: querySnapshot.docs[0]?.id,
+        });
+        if (typeof window !== "undefined") {
+          (window as any).__productsSource = "firestore";
+          (window as any).__productsSourceCollection = foundCollection;
+          (window as any).__productsSourceDocCount = querySnapshot.docs.length;
+        }
+        setProducts(firebaseProducts);
+      } catch (error) {
+        // if firestore fails, fall back to bundled products
+        console.error("ProductsContext: Firestore failed, loading fallback", error);
+        if (typeof window !== "undefined") {
+          (window as any).__productsSource = "fallback";
+          (window as any).__productsSourceReason = "firestore-error";
+          (window as any).__productsSourceError = String(error);
+        }
         setProducts(fallbackProducts);
       } finally {
         setIsLoaded(true);
@@ -122,13 +211,16 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     };
 
     const handleUpdated = () => loadProducts();
+    const handleOnline = () => loadProducts();
 
     window.addEventListener("storage", handleStorage);
     window.addEventListener(STORAGE_EVENT, handleUpdated);
+    window.addEventListener("online", handleOnline);
 
     return () => {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener(STORAGE_EVENT, handleUpdated);
+      window.removeEventListener("online", handleOnline);
     };
   }, []);
 
