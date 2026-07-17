@@ -95,7 +95,11 @@ export default function ProductDetailPage({
             {product.name}
           </h1>
           <p className="mt-3 sm:mt-4 text-2xl sm:text-3xl font-bold text-rose-600">
-            {product.price}
+            {typeof product.price === "string" && product.price.trim().length > 0
+              ? product.price.startsWith("₹")
+                ? product.price
+                : `₹${product.price}`
+              : "₹0"}
           </p>
           <p className="mt-4 sm:mt-6 text-sm sm:text-lg leading-6 sm:leading-8 text-gray-600">
             {product.description}

@@ -26,7 +26,8 @@ export default function ProductCard({
   salePrice,
 }: ProductCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
-  const favorite = isFavorite(Number(id));
+  const idString = String(id);
+  const favorite = isFavorite(idString);
   const discountPercent =
     originalPrice && salePrice
       ? Math.round(
@@ -45,7 +46,7 @@ export default function ProductCard({
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
-          toggleFavorite(Number(id));
+          toggleFavorite(idString);
         }}
         className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm transition hover:scale-105"
       >

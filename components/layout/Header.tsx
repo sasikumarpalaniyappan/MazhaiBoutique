@@ -45,7 +45,7 @@ export default function Header() {
   const totalCartItems = cartItems.reduce((total, item) => total + item.quantity, 0);
   const totalWishlistItems = favoriteCount;
 
-  const handleOpenFavorite = (favoriteId: number | string) => {
+  const handleOpenFavorite = (favoriteId: string) => {
     setIsFavoritesOpen(false);
     router.push(`/products/${favoriteId}`);
   };
@@ -194,7 +194,7 @@ export default function Header() {
                           <p className="mt-1 text-xs font-medium text-pink-500">View details →</p>
                         </div>
                       </button>
-                      <button type="button" onClick={() => toggleFavorite(Number(favoriteId))} className="text-xl text-pink-600">❤</button>
+                      <button type="button" onClick={() => toggleFavorite(favoriteId)} className="text-xl text-pink-600">❤</button>
                     </div>
                   );
                 })}

@@ -2,11 +2,12 @@
 
 import { useCart } from "@/components/context/CartContext";
 import { useFavorites } from "@/components/context/FavoritesContext";
-import { products } from "@/components/data/products";
+import { useProducts } from "@/components/context/ProductsContext";
 
 export default function WishlistPage() {
   const { favoriteIds, toggleFavorite } = useFavorites();
   const { addToCart } = useCart();
+  const { products } = useProducts();
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-32">
@@ -21,40 +22,47 @@ export default function WishlistPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {favoriteIds.map((favoriteId) => {
-            const item = products.find((product) => product.id === favoriteId);
+            const item = products.find(
+              (product) => String(product.id) === String(favoriteId)
+            );
 
             if (!item) return null;
 
+            const itemId = String(item.id);
+            const itemName = item.name || item.title;
+            const itemImage = item.image || item.thumbnailImage || "";
+            const itemPrice = item.salePrice || item.originalPrice || item.price || "—";
+
             return (
               <div
-                key={item.id}
+                key={itemId}
                 className="bg-white rounded-xl shadow-md overflow-hidden"
               >
                 <img
-                  src={item.image}
-                  alt={item.name}
+                  src={itemImage}
+                  alt={itemName}
                   className="w-full h-72 object-cover"
                 />
 
                 <div className="p-4">
                   <h2 className="text-lg font-semibold">
-                    {item.name}
+                    {itemName}
                   </h2>
 
                   <p className="text-pink-600 font-bold text-xl mt-2">
-                    {item.price}
+                    {itemPrice}
                   </p>
 
                   <button
                     onClick={() => {
                       addToCart({
-                        id: String(item.id),
-                        name: item.name,
-                        price: item.price,
-                        image: item.image,
+                        id: itemId,
+                        name: itemName,
+                        price: itemPrice,
+                        image: itemImage,
                         quantity: 1,
                       });
-                      toggleFavorite(item.id);
+                      toggleFavorite(itemId);
                     }}
                     className="w-full mt-4 bg-pink-600 text-white py-2 rounded-lg hover:bg-pink-700"
                   >
@@ -62,7 +70,7 @@ export default function WishlistPage() {
                   </button>
 
                   <button
-                    onClick={() => toggleFavorite(item.id)}
+                    onClick={() => toggleFavorite(itemId)}
                     className="w-full mt-2 border border-red-500 text-red-500 py-2 rounded-lg hover:bg-red-50"
                   >
                     Remove from Favorites

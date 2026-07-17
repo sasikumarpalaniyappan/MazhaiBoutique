@@ -11,16 +11,16 @@ import {
 const STORAGE_KEY = "favorites";
 
 type FavoritesContextType = {
-  favoriteIds: number[];
-  toggleFavorite: (productId: number) => void;
-  isFavorite: (productId: number) => boolean;
+  favoriteIds: string[];
+  toggleFavorite: (productId: string) => void;
+  isFavorite: (productId: string) => boolean;
   favoriteCount: number;
 };
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -32,7 +32,11 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         const parsedFavorites = JSON.parse(savedFavorites);
 
         if (Array.isArray(parsedFavorites)) {
-          setFavoriteIds(parsedFavorites.filter((id) => typeof id === "number"));
+          setFavoriteIds(
+            parsedFavorites
+              .filter((id) => typeof id === "string" || typeof id === "number")
+              .map(String)
+          );
         }
       }
     } catch {
@@ -46,7 +50,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(favoriteIds));
   }, [favoriteIds]);
 
-  const toggleFavorite = (productId: number) => {
+  const toggleFavorite = (productId: string) => {
     setFavoriteIds((prev) =>
       prev.includes(productId)
         ? prev.filter((id) => id !== productId)
@@ -54,7 +58,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const isFavorite = (productId: number) => favoriteIds.includes(productId);
+  const isFavorite = (productId: string) => favoriteIds.includes(productId);
 
   const value = useMemo(
     () => ({
