@@ -1,22 +1,6 @@
 import ProductDetailPage from "@/components/ProductDetailPage";
-import { getApp, getApps, initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
-
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-const getFirebaseApp = () => {
-  if (!getApps().length) {
-    return initializeApp(firebaseConfig);
-  }
-  return getApp();
-};
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default async function ProductPage({ params }: { params: { id: string } | Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -31,8 +15,17 @@ export default async function ProductPage({ params }: { params: { id: string } |
     );
   }
 
-  const app = getFirebaseApp();
-  const db = getFirestore(app);
+  if (!db) {
+    return (
+      <div className="mt-20 text-center">
+        <h1 className="text-2xl font-semibold">Product not available</h1>
+        <p className="mt-4 text-sm text-gray-600">
+          Cannot connect to Firestore. Check your Firebase environment configuration.
+        </p>
+      </div>
+    );
+  }
+
   const productRef = doc(db, "products", id);
   const productSnap = await getDoc(productRef);
 

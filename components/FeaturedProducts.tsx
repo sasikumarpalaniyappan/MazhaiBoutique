@@ -4,7 +4,7 @@ import ProductCard from "@/components/ProductCard";
 import { useProducts } from "@/components/context/ProductsContext";
 
 export default function FeaturedProducts() {
-  const { products, isLoaded } = useProducts();
+  const { products, isLoaded, error } = useProducts();
 
   const visibleProducts = products.filter((product) => product.thumbnailImage || product.image);
 
@@ -20,7 +20,12 @@ export default function FeaturedProducts() {
         <div className="mt-3 h-px w-24 bg-pink-200" />
       </div>
 
-      {!isLoaded ? (
+      {error ? (
+        <div className="rounded-2xl border border-pink-200 bg-rose-50 px-6 py-10 text-center text-sm text-rose-700">
+          <p className="font-semibold">Unable to load products from Firebase.</p>
+          <p className="mt-1">{error}. Showing fallback product collection.</p>
+        </div>
+      ) : !isLoaded ? (
         <div className="rounded-2xl border border-dashed border-pink-200 bg-pink-50 px-6 py-10 text-center text-sm text-gray-600">
           Loading collection...
         </div>

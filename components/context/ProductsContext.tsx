@@ -32,6 +32,7 @@ export type CatalogProduct = {
 type ProductsContextType = {
   products: CatalogProduct[];
   isLoaded: boolean;
+  error?: string;
 };
 
 const normalizeProduct = (product: Partial<CatalogProduct> & Record<string, unknown>): CatalogProduct => ({
@@ -94,6 +95,7 @@ const ProductsContext = createContext<ProductsContextType | undefined>(undefined
 export function ProductsProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<CatalogProduct[]>(fallbackProducts);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -101,7 +103,10 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     const loadProducts = async () => {
       // If Firestore isn't initialized (missing env or SSR), fall back to local storage or bundled data
       if (!db) {
-        console.log("ProductsContext: Firestore not initialized; using localStorage/fallback");
+        const message = "Firestore not initialized. Falling back to local products.";
+        console.warn("ProductsContext:", message);
+        setError(message);
+
         try {
           const saved = window.localStorage.getItem(STORAGE_KEY);
 
@@ -142,14 +147,14 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (!querySnapshot || querySnapshot.size === 0) {
-          console.log("ProductsContext: Firestore returned no documents for known collections; using fallback", {
-            triedCollections: collectionNames,
-          });
+          const message = "Firestore returned no products for known collections.";
+          console.warn("ProductsContext:", message, { triedCollections: collectionNames });
           if (typeof window !== "undefined") {
             (window as any).__productsSource = "fallback";
             (window as any).__productsSourceReason = "firestore-no-docs";
             (window as any).__productsSourceCollections = collectionNames;
           }
+          setError(message);
           setProducts(fallbackProducts);
           return;
         }
@@ -187,15 +192,17 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
           (window as any).__productsSourceCollection = foundCollection;
           (window as any).__productsSourceDocCount = querySnapshot.docs.length;
         }
+        setError(undefined);
         setProducts(firebaseProducts);
       } catch (error) {
-        // if firestore fails, fall back to bundled products
+        const message = error instanceof Error ? error.message : String(error);
         console.error("ProductsContext: Firestore failed, loading fallback", error);
         if (typeof window !== "undefined") {
           (window as any).__productsSource = "fallback";
           (window as any).__productsSourceReason = "firestore-error";
-          (window as any).__productsSourceError = String(error);
+          (window as any).__productsSourceError = message;
         }
+        setError(message);
         setProducts(fallbackProducts);
       } finally {
         setIsLoaded(true);
@@ -228,8 +235,9 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     () => ({
       products,
       isLoaded,
+      error,
     }),
-    [products, isLoaded]
+    [products, isLoaded, error]
   );
 
   return <ProductsContext.Provider value={value}>{children}</ProductsContext.Provider>;
