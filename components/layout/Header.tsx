@@ -43,7 +43,10 @@ export default function Header() {
   }, []);
 
   const totalCartItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-  const totalWishlistItems = favoriteCount;
+  const visibleFavoriteIds = favoriteIds.filter((favoriteId) =>
+    products.some((product) => String(product.id) === String(favoriteId))
+  );
+  const totalWishlistItems = visibleFavoriteIds.length;
 
   const handleOpenFavorite = (favoriteId: string) => {
     setIsFavoritesOpen(false);
@@ -76,8 +79,8 @@ export default function Header() {
                       onClick={() => handleNavClick(item.label)}
                       className={`inline-flex items-center justify-center rounded-full px-3 lg:px-5 py-2 text-xs lg:text-sm font-medium transition-shadow whitespace-nowrap ${
                           isActive
-                            ? "bg-pink-600 text-white shadow-lg"
-                            : "bg-pink-50 border-2 border-pink-200 text-pink-700 hover:shadow-md"
+                            ? "bg-rose-700 text-white shadow-lg"
+                            : "bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md"
                         }`}
                     >
                       {item.label}
@@ -93,11 +96,11 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setIsFavoritesOpen(true)}
-              className="relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-shadow bg-pink-50 border-2 border-pink-200 text-pink-700 hover:shadow-md flex-shrink-0"
+              className="relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-shadow bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md flex-shrink-0"
             >
-              <HeartIcon size={16} strokeClass="stroke-pink-600" fillClass="fill-pink-100" />
+              <HeartIcon size={16} strokeClass="stroke-rose-700" fillClass="fill-rose-100" />
               {totalWishlistItems > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-600 px-1 text-xs text-white">
+                <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-900 px-1 text-xs text-white">
                   {totalWishlistItems}
                 </span>
               )}
@@ -107,12 +110,12 @@ export default function Header() {
               type="button"
               onClick={() => setIsCartOpen(true)}
               className={`relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-shadow flex-shrink-0 ${
-                isCartOpen ? "bg-pink-600 text-white shadow-lg" : "bg-pink-50 border-2 border-pink-200 text-pink-700 hover:shadow-md"
+                isCartOpen ? "bg-rose-700 text-white shadow-lg" : "bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md"
               }`}
             >
               <CartIcon size={18} />
               {totalCartItems > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-600 px-1 text-xs text-white">
+                <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-900 px-1 text-xs text-white">
                   {totalCartItems}
                 </span>
               )}
@@ -122,7 +125,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden flex h-9 w-9 items-center justify-center rounded-full bg-pink-50 border-2 border-pink-200 text-pink-700 flex-shrink-0"
+              className="md:hidden flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 border-2 border-rose-200 text-rose-700 flex-shrink-0"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
@@ -133,7 +136,7 @@ export default function Header() {
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <nav className="md:hidden border-t border-pink-100 bg-white">
+          <nav className="md:hidden border-t border-rose-100 bg-white">
             <ul className="flex flex-col py-3">
               {navItems.map((item) => {
                 const isActive = activeNav === item.label;
@@ -144,8 +147,8 @@ export default function Header() {
                       onClick={() => handleNavClick(item.label)}
                       className={`block px-4 py-2.5 text-sm font-medium transition-colors ${
                           isActive
-                            ? "bg-pink-50 text-pink-600 border-l-4 border-pink-600"
-                            : "text-gray-700 hover:bg-pink-50"
+                            ? "bg-rose-50 text-rose-700 border-l-4 border-rose-700"
+                            : "text-gray-700 hover:bg-rose-50"
                         }`}
                     >
                       {item.label}
@@ -164,22 +167,22 @@ export default function Header() {
         <div className={`absolute inset-0 bg-black/30 transition ${isFavoritesOpen ? "opacity-100" : "opacity-0"}`} onClick={() => setIsFavoritesOpen(false)} />
 
         <aside className={`absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transition-transform duration-300 ${isFavoritesOpen ? "translate-x-0" : "translate-x-full"}`}>
-          <div className="flex items-center justify-between border-b border-pink-100 px-6 py-4">
+          <div className="flex items-center justify-between border-b border-rose-100 px-6 py-4">
             <div>
-              <h2 className="text-xl font-semibold text-pink-600">Favorites</h2>
+              <h2 className="text-xl font-semibold text-rose-700">Favorites</h2>
               <p className="text-sm text-gray-500">Saved picks for later</p>
             </div>
             <button type="button" onClick={() => setIsFavoritesOpen(false)} className="text-2xl text-gray-500">×</button>
           </div>
 
           <div className="max-h-[calc(100vh-80px)] overflow-y-auto px-6 py-4">
-            {favoriteIds.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-pink-200 bg-pink-50 p-6 text-center text-sm text-gray-600">
+            {visibleFavoriteIds.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-rose-200 bg-rose-50 p-6 text-center text-sm text-gray-600">
                 No favorites yet. Tap the heart on any product to save it here.
               </div>
             ) : (
               <div className="space-y-3">
-                {favoriteIds.map((favoriteId) => {
+                {visibleFavoriteIds.map((favoriteId) => {
                   const product = products.find((item) => String(item.id) === String(favoriteId));
                   if (!product) return null;
                   const displayPrice = product.salePrice || product.originalPrice || product.price || "—";
@@ -190,11 +193,11 @@ export default function Header() {
                         <img src={product.thumbnailImage || product.image || ""} alt={product.title} className="h-16 w-16 rounded-lg object-cover" />
                         <div className="flex-1">
                           <p className="font-medium text-gray-800">{product.title}</p>
-                          <p className="text-sm text-pink-600">{displayPrice}</p>
-                          <p className="mt-1 text-xs font-medium text-pink-500">View details →</p>
+                          <p className="text-sm text-rose-700">{displayPrice}</p>
+                          <p className="mt-1 text-xs font-medium text-rose-600">View details →</p>
                         </div>
                       </button>
-                      <button type="button" onClick={() => toggleFavorite(favoriteId)} className="text-xl text-pink-600">❤</button>
+                      <button type="button" onClick={() => toggleFavorite(favoriteId)} className="text-xl text-rose-700">❤</button>
                     </div>
                   );
                 })}
@@ -206,3 +209,5 @@ export default function Header() {
     </header>
   );
 }
+
+

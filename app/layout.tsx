@@ -1,6 +1,5 @@
 import "./globals.css";
 import Header from "../components/layout/Header";
-import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { CartProvider } from "@/components/context/CartContext";
 import { FavoritesProvider } from "@/components/context/FavoritesContext";
@@ -52,3 +51,4 @@ export default function RootLayout({
     </html>
   );
 }
+

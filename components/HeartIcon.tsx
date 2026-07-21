@@ -12,8 +12,8 @@ export default function HeartIcon({
   className = "",
   size = 18,
   filled = true,
-  strokeClass = "stroke-pink-600",
-  fillClass = "fill-pink-100",
+  strokeClass = "stroke-rose-700",
+  fillClass = "fill-rose-100",
 }: Props) {
   return (
     <svg
@@ -34,3 +34,5 @@ export default function HeartIcon({
     </svg>
   );
 }
+
+

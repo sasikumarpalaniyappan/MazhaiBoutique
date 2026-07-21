@@ -50,7 +50,7 @@ export default function ProductCard({
         }}
         className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm transition hover:scale-105"
       >
-        <span className={`text-xl ${favorite ? "text-pink-600" : "text-pink-400"}`}>
+        <span className={`text-xl ${favorite ? "text-rose-700" : "text-rose-500"}`}>
           {favorite ? "❤" : "♡"}
         </span>
       </button>
@@ -68,13 +68,13 @@ export default function ProductCard({
         
         {/* Clickable Product Name */}
         <Link href={`/products/${id}`}>
-          <h3 className="text-lg font-semibold hover:text-pink-600 cursor-pointer">
+          <h3 className="text-lg font-semibold hover:text-rose-700 cursor-pointer">
             {name}
           </h3>
         </Link>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <p className="text-pink-600 font-bold text-xl">
+          <p className="text-rose-700 font-bold text-xl">
             {formatPriceLabel(price)}
           </p>
           {originalPrice && salePrice ? (
@@ -93,3 +93,5 @@ export default function ProductCard({
     </div>
   );
 }
+
+

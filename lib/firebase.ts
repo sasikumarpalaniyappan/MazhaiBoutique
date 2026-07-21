@@ -26,15 +26,27 @@ let auth: any = undefined;
 let db: any = undefined;
 
 if (hasFirebaseConfig) {
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  auth = getAuth(app);
-  db = getFirestore(app);
-  console.log("Firebase initialized:", {
-    appInitialized: Boolean(app),
-    authInitialized: Boolean(auth),
-    dbInitialized: Boolean(db),
-    configSource: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? "NEXT_PUBLIC" : "FIREBASE",
-  });
+  try {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    db = getFirestore(app);
+    
+    // Try to initialize auth, but don't fail if Identity Toolkit API is not enabled
+    try {
+      auth = getAuth(app);
+    } catch (authError) {
+      console.warn("Auth initialization failed (Identity Toolkit API may not be enabled):", authError);
+      auth = undefined;
+    }
+    
+    console.log("Firebase initialized:", {
+      appInitialized: Boolean(app),
+      authInitialized: Boolean(auth),
+      dbInitialized: Boolean(db),
+      configSource: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? "NEXT_PUBLIC" : "FIREBASE",
+    });
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+  }
 } else {
   console.warn("Firebase not initialized: missing Firebase environment variables.", {
     isBrowser: typeof window !== "undefined",
@@ -46,3 +58,4 @@ if (hasFirebaseConfig) {
 }
 
 export { app, auth, db };
+

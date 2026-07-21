@@ -1,107 +1,57 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function RegisterPage() {
-  const router = useRouter();
-
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!name || !email || !password) {
-      alert("Please fill in all fields.");
-      return;
-    }
-
-    // Get existing users
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-
-    // Check if email already exists
-    const existingUser = users.find(
-      (user: any) => user.email === email
-    );
-
-    if (existingUser) {
-      alert("An account with this email already exists.");
-      return;
-    }
-
-    // Add new user
-    users.push({
-      name,
-      email,
-      password,
-    });
-
-    // Save users
-    localStorage.setItem("users", JSON.stringify(users));
-
-    alert("Registration successful!");
-
-    // Redirect to Login
-    window.location.href = "/login";
-  };
-
   return (
-    <div className="max-w-md mx-auto py-32 px-6">
-      <h1 className="text-4xl font-bold text-pink-600 mb-8 text-center">
-        Register
-      </h1>
-
-      <form onSubmit={handleRegister} className="space-y-5">
-
-        {/* Full Name */}
-        <input
-          type="text"
-          placeholder="Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500"
-        />
-
-        {/* Email */}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500"
-        />
-
-        {/* Password */}
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500"
-        />
-
-        {/* Register Button */}
-        <button
-          type="submit"
-          className="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700 transition"
-        >
+    <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex items-center justify-center px-4 sm:px-6">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 sm:p-10">
+        <h1 className="text-3xl font-bold text-rose-700 mb-2 text-center" style={{ fontFamily: "Cormorant, serif", fontStyle: "italic" }}>
           Create Account
-        </button>
-      </form>
+        </h1>
+        <p className="text-center text-gray-600 mb-8">Join Mazhai Boutique today</p>
 
-      {/* Login Link */}
-      <p className="text-center mt-6 text-gray-600">
-        Already have an account?{" "}
-        <Link
-          href="/login"
-          className="text-pink-600 font-semibold hover:underline"
-        >
-          Login
-        </Link>
-      </p>
+        <form className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+            <input
+              type="text"
+              placeholder="Your name"
+              className="w-full px-4 py-2 border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-600 focus:border-transparent outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              className="w-full px-4 py-2 border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-600 focus:border-transparent outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              className="w-full px-4 py-2 border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-600 focus:border-transparent outline-none"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2 rounded-lg transition mt-6"
+          >
+            Create Account
+          </button>
+        </form>
+
+        <p className="text-center text-gray-600 mt-6">
+          Already have an account?{" "}
+          <Link href="/login" className="text-rose-600 hover:text-rose-700 font-semibold">
+            Sign In
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

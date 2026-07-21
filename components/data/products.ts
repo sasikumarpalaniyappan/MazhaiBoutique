@@ -79,3 +79,4 @@ export const products: ProductItem[] = [
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRkr7lVQtapNjWwwqWDGhM5u8HlSMAsINleCX3Bz26Wow&s=10",
   },
 ];
+

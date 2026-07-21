@@ -22,3 +22,4 @@ export default function CartIcon({ className = "", size = 20 }: Props) {
     </svg>
   );
 }
+

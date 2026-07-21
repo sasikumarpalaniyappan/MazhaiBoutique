@@ -9,10 +9,6 @@ import {
 } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { products as fallbackSeedProducts } from "@/components/data/products";
-
-export const STORAGE_KEY = "mazhai-boutique-products";
-export const STORAGE_EVENT = "mazhai-products-updated";
 
 export type CatalogProduct = {
   id: string;
@@ -52,48 +48,10 @@ const normalizeProduct = (product: Partial<CatalogProduct> & Record<string, unkn
   image: typeof product.image === "string" ? product.image : undefined,
 });
 
-export const fallbackProducts: CatalogProduct[] = fallbackSeedProducts.map((product) =>
-  normalizeProduct({
-    id: String(product.id),
-    title: product.name,
-    originalPrice: product.price,
-    thumbnailImage: product.image,
-    image: product.image,
-    name: product.name,
-    price: product.price,
-  })
-);
-
-export const mergeProductsWithFallback = (savedProducts: unknown): CatalogProduct[] => {
-  const normalizedSaved = Array.isArray(savedProducts)
-    ? savedProducts.map((item) =>
-        normalizeProduct(item as Partial<CatalogProduct> & Record<string, unknown>)
-      )
-    : [];
-
-  const merged = [...fallbackProducts];
-
-  normalizedSaved.forEach((item) => {
-    const existingIndex = merged.findIndex(
-      (existing) =>
-        String(existing.id) === String(item.id) ||
-        existing.title.trim().toLowerCase() === item.title.trim().toLowerCase()
-    );
-
-    if (existingIndex >= 0) {
-      merged[existingIndex] = { ...merged[existingIndex], ...item };
-    } else {
-      merged.push(item);
-    }
-  });
-
-  return merged;
-};
-
 const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
 
 export function ProductsProvider({ children }: { children: React.ReactNode }) {
-  const [products, setProducts] = useState<CatalogProduct[]>(fallbackProducts);
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
@@ -101,33 +59,18 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
 
     const loadProducts = async () => {
-      // If Firestore isn't initialized (missing env or SSR), fall back to local storage or bundled data
       if (!db) {
-        const message = "Firestore not initialized. Falling back to local products.";
+        const message = "Firestore is not initialized.";
         console.warn("ProductsContext:", message);
         setError(message);
-
-        try {
-          const saved = window.localStorage.getItem(STORAGE_KEY);
-
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            setProducts(mergeProductsWithFallback(parsed));
-          } else {
-            setProducts(fallbackProducts);
-          }
-        } catch {
-          setProducts(fallbackProducts);
-        } finally {
-          setIsLoaded(true);
-        }
-
+        setProducts([]);
+        setIsLoaded(true);
         return;
       }
 
       if (!navigator.onLine) {
-        console.log("ProductsContext: Offline mode detected; using fallback products");
-        setProducts(fallbackProducts);
+        console.log("ProductsContext: Offline mode detected; no products available.");
+        setProducts([]);
         setIsLoaded(true);
         return;
       }
@@ -155,7 +98,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
             (window as any).__productsSourceCollections = collectionNames;
           }
           setError(message);
-          setProducts(fallbackProducts);
+          setProducts([]);
           return;
         }
 
@@ -203,7 +146,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
           (window as any).__productsSourceError = message;
         }
         setError(message);
-        setProducts(fallbackProducts);
+        setProducts([]);
       } finally {
         setIsLoaded(true);
       }
@@ -211,22 +154,11 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
 
     loadProducts();
 
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === STORAGE_KEY) {
-        loadProducts();
-      }
-    };
-
-    const handleUpdated = () => loadProducts();
     const handleOnline = () => loadProducts();
 
-    window.addEventListener("storage", handleStorage);
-    window.addEventListener(STORAGE_EVENT, handleUpdated);
     window.addEventListener("online", handleOnline);
 
     return () => {
-      window.removeEventListener("storage", handleStorage);
-      window.removeEventListener(STORAGE_EVENT, handleUpdated);
       window.removeEventListener("online", handleOnline);
     };
   }, []);
@@ -252,3 +184,4 @@ export function useProducts() {
 
   return context;
 }
+

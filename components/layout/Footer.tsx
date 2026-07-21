@@ -22,10 +22,10 @@ export default function Footer() {
               Quick Links
             </h3>
             <ul className="mt-3 space-y-2 text-xs sm:text-sm text-slate-600">
-              <li><a href="/" className="transition hover:text-rose-600">Home</a></li>
-              <li><a href="/#featured" className="transition hover:text-rose-600">Collections</a></li>
-              <li><a href="/about" className="transition hover:text-rose-600">About</a></li>
-              <li><a href="#contact" className="transition hover:text-rose-600">Contact</a></li>
+              <li><a href="/" className="transition hover:text-rose-700">Home</a></li>
+              <li><a href="/#featured" className="transition hover:text-rose-700">Collections</a></li>
+              <li><a href="/about" className="transition hover:text-rose-700">About</a></li>
+              <li><a href="#contact" className="transition hover:text-rose-700">Contact</a></li>
             </ul>
           </div>
 
@@ -38,7 +38,7 @@ export default function Footer() {
                 href="https://maps.google.com/?q=6/1017+A+Mullai+Valagam+Namakkal"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-300 hover:text-rose-600 flex-shrink-0"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-500 hover:text-rose-800 flex-shrink-0"
                 aria-label="Open location"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
@@ -51,7 +51,7 @@ export default function Footer() {
                 href="https://wa.me/919566914912"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-300 hover:text-rose-600 flex-shrink-0"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-500 hover:text-rose-800 flex-shrink-0"
                 aria-label="Open WhatsApp"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
@@ -63,7 +63,7 @@ export default function Footer() {
                 href="https://instagram.com/mazhai_boutique"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-300 hover:text-rose-600 flex-shrink-0"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:border-rose-500 hover:text-rose-800 flex-shrink-0"
                 aria-label="Open Instagram"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
@@ -73,7 +73,7 @@ export default function Footer() {
                 </svg>
               </a>
 
-              <a href="tel:+919566914912" className="text-xs sm:text-sm text-slate-600 transition hover:text-rose-600 whitespace-nowrap">
+              <a href="tel:+919566914912" className="text-xs sm:text-sm text-slate-600 transition hover:text-rose-700 whitespace-nowrap">
                 +91 95669 14912
               </a>
             </div>
@@ -87,3 +87,5 @@ export default function Footer() {
     </footer>
   );
 }
+
+

@@ -10,19 +10,19 @@ export default function ProductsIndex() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-24 lg:py-32">
-      <h1 className="text-3xl font-semibold text-center text-pink-600">Our Collections</h1>
+      <h1 className="text-3xl font-semibold text-center text-rose-700">Our Collections</h1>
 
       {error ? (
-        <div className="mt-10 rounded-2xl border border-pink-200 bg-rose-50 px-6 py-10 text-center text-sm text-rose-700">
+        <div className="mt-10 rounded-2xl border border-rose-200 bg-rose-50 px-6 py-10 text-center text-sm text-rose-700">
           <p className="font-semibold">Unable to load products from Firebase.</p>
           <p className="mt-1">{error}. Showing fallback collection.</p>
         </div>
       ) : !isLoaded ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-pink-200 bg-pink-50 px-6 py-10 text-center text-sm text-gray-600">
+        <div className="mt-10 rounded-2xl border border-dashed border-rose-200 bg-rose-50 px-6 py-10 text-center text-sm text-gray-600">
           Loading collection...
         </div>
       ) : visibleProducts.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-pink-200 bg-pink-50 px-6 py-10 text-center text-sm text-gray-600">
+        <div className="mt-10 rounded-2xl border border-dashed border-rose-200 bg-rose-50 px-6 py-10 text-center text-sm text-gray-600">
           No products available in this collection yet.
         </div>
       ) : (
@@ -38,10 +38,10 @@ export default function ProductsIndex() {
                 alt={product.title}
                 className="h-48 w-full rounded-md object-cover"
               />
-              <h2 className="mt-3 font-medium text-gray-800 group-hover:text-pink-600">
+              <h2 className="mt-3 font-medium text-gray-800 group-hover:text-rose-700">
                 {product.title}
               </h2>
-              <p className="mt-1 text-pink-600 font-semibold">
+              <p className="mt-1 text-rose-700 font-semibold">
                 {product.salePrice || product.originalPrice}
               </p>
             </Link>
@@ -51,3 +51,5 @@ export default function ProductsIndex() {
     </div>
   );
 }
+
+

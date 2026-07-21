@@ -33,9 +33,15 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
         if (Array.isArray(parsedFavorites)) {
           setFavoriteIds(
-            parsedFavorites
-              .filter((id) => typeof id === "string" || typeof id === "number")
-              .map(String)
+            Array.from(
+              new Set(
+                parsedFavorites
+                  .filter((id) => typeof id === "string" || typeof id === "number")
+                  .map(String)
+                  .map((id) => id.trim())
+                  .filter((id) => id !== "" && id !== "null" && id !== "undefined")
+              )
+            )
           );
         }
       }
@@ -86,3 +92,4 @@ export function useFavorites() {
 
   return context;
 }
+

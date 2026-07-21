@@ -42,7 +42,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       >
         <div className="flex items-center justify-between border-b border-rose-100 px-4 sm:px-6 py-3 sm:py-5">
           <div>
-            <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-rose-500">
+            <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-rose-600">
               Your Cart
             </p>
             <h2 className="text-lg sm:text-2xl font-semibold text-gray-900">
@@ -53,7 +53,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-gray-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:border-rose-300 hover:text-rose-600"
+            className="rounded-full border border-gray-200 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:border-rose-600 hover:text-rose-700"
           >
             Close
           </button>
@@ -94,7 +94,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         <button
                           type="button"
                           onClick={() => removeFromCart(item.id, item.selectedSize)}
-                          className="text-xs sm:text-sm text-rose-500 hover:text-rose-700 whitespace-nowrap flex-shrink-0"
+                          className="text-xs sm:text-sm text-rose-600 hover:text-rose-800 whitespace-nowrap flex-shrink-0"
                         >
                           Remove
                         </button>
@@ -133,7 +133,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                           </button>
                         </div>
 
-                        <p className="text-sm sm:text-base font-semibold text-rose-600 flex-shrink-0">
+                        <p className="text-sm sm:text-base font-semibold text-rose-700 flex-shrink-0">
                           {item.price}
                         </p>
                       </div>
@@ -164,3 +164,5 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     </>
   );
 }
+
+
