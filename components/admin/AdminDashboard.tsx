@@ -252,9 +252,9 @@ export default function AdminDashboard() {
                   <td className="p-4">{p.salePrice ?? "-"}</td>
                   <td className="p-4">
                     <div className="flex gap-2">
-                      <button onClick={() => handleView(p.id)} className="px-3 py-1 border rounded text-sm">View</button>
-                      <button onClick={() => handleEdit(p.id)} className="px-3 py-1 border rounded text-sm">Edit</button>
-                      <button onClick={() => handleDelete(p.id)} className="px-3 py-1 bg-rose-500 text-white rounded text-sm">Delete</button>
+                      <button onClick={() => handleView(String(p.id))} className="px-3 py-1 border rounded text-sm">View</button>
+                      <button onClick={() => handleEdit(String(p.id))} className="px-3 py-1 border rounded text-sm">Edit</button>
+                      <button onClick={() => handleDelete(String(p.id))} className="px-3 py-1 bg-rose-500 text-white rounded text-sm">Delete</button>
                     </div>
                   </td>
                 </tr>
