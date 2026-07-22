@@ -6,7 +6,7 @@ import { useProducts } from "@/components/context/ProductsContext";
 export default function FeaturedProducts() {
   const { products, isLoaded, error } = useProducts();
 
-  const visibleProducts = products.filter((product) => product.thumbnailImage || product.image);
+  const visibleProducts = products;
 
   return (
     <section className="pb-8">

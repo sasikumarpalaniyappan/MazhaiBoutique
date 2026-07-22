@@ -6,7 +6,7 @@ import { useProducts } from "@/components/context/ProductsContext";
 export default function ProductsIndex() {
   const { products, isLoaded, error } = useProducts();
 
-  const visibleProducts = products.filter((product) => product.thumbnailImage || product.image);
+  const visibleProducts = products;
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-24 lg:py-32">

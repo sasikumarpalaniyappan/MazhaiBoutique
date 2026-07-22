@@ -105,7 +105,15 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
         const firebaseProducts = querySnapshot.docs.map((doc) => {
           const data = doc.data() as any;
           const rawPrice = data.price ?? data["price "] ?? data["price"] ?? data["price"];
-          const rawImage = data.image ?? data["image"] ?? data["image "];
+          const rawImage =
+            data.thumbnailImage ??
+            data.image ??
+            data.imageUrl ??
+            data.img ??
+            data.photo ??
+            data["image"] ??
+            data["image "] ??
+            "";
           const rawName = data.name ?? data["name"] ?? data["name "];
           const rawCategory = data.category ?? data["category"] ?? data["category "];
 

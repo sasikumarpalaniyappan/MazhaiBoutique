@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY,
@@ -24,12 +25,21 @@ const hasFirebaseConfig = Boolean(
 let app: any = undefined;
 let auth: any = undefined;
 let db: any = undefined;
+let storage: any = undefined;
 
 if (hasFirebaseConfig) {
   try {
     app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     db = getFirestore(app);
-    
+
+    // Try to initialize storage (if configured)
+    try {
+      storage = getStorage(app);
+    } catch (storageError) {
+      console.warn("Storage initialization failed:", storageError);
+      storage = undefined;
+    }
+
     // Try to initialize auth, but don't fail if Identity Toolkit API is not enabled
     try {
       auth = getAuth(app);
@@ -57,5 +67,5 @@ if (hasFirebaseConfig) {
   });
 }
 
-export { app, auth, db };
+export { app, auth, db, storage };
 

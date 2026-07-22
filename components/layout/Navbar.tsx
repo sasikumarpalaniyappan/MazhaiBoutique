@@ -19,6 +19,9 @@ export default function Navbar() {
         <li className="hover:text-rose-700 cursor-pointer transition">
           <Link href="/#contact">Contact</Link>
         </li>
+        <li className="hover:text-rose-700 cursor-pointer transition">
+          <Link href="/admin">Admin</Link>
+        </li>
       </ul>
     </nav>
   );

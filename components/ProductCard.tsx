@@ -57,11 +57,17 @@ export default function ProductCard({
       
       {/* Clickable Product Image */}
       <Link href={`/products/${id}`}>
-        <img
-          src={image}
-          alt={name}
-          className="w-full h-80 object-cover cursor-pointer"
-        />
+        {image ? (
+          <img
+            src={image}
+            alt={name}
+            className="w-full h-80 object-cover cursor-pointer"
+          />
+        ) : (
+          <div className="w-full h-80 bg-gray-100 flex items-center justify-center text-sm text-gray-500 rounded-t-xl">
+            No image available
+          </div>
+        )}
       </Link>
 
       <div className="p-4">
