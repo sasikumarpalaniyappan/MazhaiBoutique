@@ -3,16 +3,34 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+const fallbackFirebaseConfig = {
+  apiKey: "AIzaSyCe_3vdSOGtEbVf9idATSrksC_p24uKxQI",
+  authDomain: "mazhaiboutique-b5438.firebaseapp.com",
+  projectId: "mazhaiboutique-b5438",
+  storageBucket: "mazhaiboutique-b5438.firebasestorage.app",
+  messagingSenderId: "586659323889",
+  appId: "1:586659323889:web:f4c933b746919bc4972e50",
+  measurementId: "",
+};
+
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET,
+  apiKey:
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || fallbackFirebaseConfig.apiKey,
+  authDomain:
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN || fallbackFirebaseConfig.authDomain,
+  projectId:
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || fallbackFirebaseConfig.projectId,
+  storageBucket:
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET || fallbackFirebaseConfig.storageBucket,
   messagingSenderId:
-    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID,
+    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ||
+    process.env.FIREBASE_MESSAGING_SENDER_ID ||
+    fallbackFirebaseConfig.messagingSenderId,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID || fallbackFirebaseConfig.appId,
   measurementId:
-    process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || process.env.FIREBASE_MEASUREMENT_ID,
+    process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ||
+    process.env.FIREBASE_MEASUREMENT_ID ||
+    fallbackFirebaseConfig.measurementId,
 };
 
 const hasFirebaseConfig = Boolean(
