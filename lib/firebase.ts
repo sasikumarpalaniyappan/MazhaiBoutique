@@ -4,23 +4,20 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId:
-    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID,
-  measurementId:
-    process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || process.env.FIREBASE_MEASUREMENT_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-const hasFirebaseConfig = Boolean(
-  firebaseConfig.apiKey &&
-    firebaseConfig.authDomain &&
-    firebaseConfig.projectId &&
-    firebaseConfig.appId
+const requiredFirebaseFields = ["apiKey", "authDomain", "projectId", "appId"] as const;
+const missingFirebaseFields = requiredFirebaseFields.filter(
+  (field) => !firebaseConfig[field]
 );
+const hasFirebaseConfig = missingFirebaseFields.length === 0;
 
 let app: any = undefined;
 let auth: any = undefined;
@@ -58,8 +55,9 @@ if (hasFirebaseConfig) {
     console.error("Firebase initialization error:", error);
   }
 } else {
-  console.warn("Firebase not initialized: missing Firebase environment variables.", {
+  console.warn("Firebase not initialized: missing required Firebase environment variables.", {
     isBrowser: typeof window !== "undefined",
+    missingFields: missingFirebaseFields,
     apiKeyPresent: Boolean(firebaseConfig.apiKey),
     projectIdPresent: Boolean(firebaseConfig.projectId),
     authDomainPresent: Boolean(firebaseConfig.authDomain),
