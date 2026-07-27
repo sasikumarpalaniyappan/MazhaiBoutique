@@ -346,8 +346,10 @@ export default function AdminDashboard() {
       setGalleryPreviewUrls([]);
       setEditing(null);
     } catch (e) {
-      console.error(e);
-      alert("Save failed: " + String(e));
+      const message = getSupabaseErrorMessage(e);
+      console.error("Save failed:", e, message);
+      setError(message);
+      alert("Save failed: " + message);
     } finally {
       setSaving(false);
     }
