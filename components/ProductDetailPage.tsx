@@ -13,10 +13,25 @@ type ProductDetailPageProps = {
     id: string;
     name: string;
     price: string;
+    originalPrice?: string;
+    salePrice?: string;
     description: string;
     images: string[];
     sizes?: string[];
   };
+};
+
+const formatPrice = (value: string) =>
+  value.startsWith("₹") ? value : `₹${value}`;
+
+const calculateDiscountPercent = (originalPrice?: string, salePrice?: string) => {
+  if (!originalPrice || !salePrice) return null;
+  const original = Number(String(originalPrice).replace(/[^0-9.]/g, ""));
+  const sale = Number(String(salePrice).replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(original) || !Number.isFinite(sale) || original <= 0 || sale >= original) {
+    return null;
+  }
+  return Math.round(((original - sale) / original) * 100);
 };
 
 export default function ProductDetailPage({
@@ -100,11 +115,12 @@ export default function ProductDetailPage({
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-24 lg:py-32">
       <div className="grid gap-6 sm:gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-3 sm:space-y-4">
-          <div className="overflow-hidden rounded-xl sm:rounded-[2rem] border border-rose-100 bg-rose-50 p-2 shadow-[0_25px_80px_-25px_rgba(128,0,32,0.35)]">
+          <div className="overflow-hidden rounded-xl sm:rounded-[2rem] border border-rose-100 bg-rose-50 p-2 shadow-[0_25px_80px_-25px_rgba(128,0,32,0.35)] flex justify-center">
             <img
               src={selectedImage}
               alt={product.name}
-              className="h-64 sm:h-96 lg:h-[460px] w-full rounded-lg sm:rounded-[1.5rem] object-cover"
+              className="max-w-full h-auto rounded-lg sm:rounded-[1.5rem] object-contain"
+              style={{ maxHeight: 460 }}
             />
           </div>
 
@@ -137,13 +153,28 @@ export default function ProductDetailPage({
           <h1 className="mt-2 sm:mt-3 text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-900">
             {product.name}
           </h1>
-          <p className="mt-3 sm:mt-4 text-2xl sm:text-3xl font-bold text-rose-700">
-            {typeof product.price === "string" && product.price.trim().length > 0
-              ? product.price.startsWith("₹")
-                ? product.price
-                : `₹${product.price}`
-              : "₹0"}
-          </p>
+          <div className="mt-3 sm:mt-4 flex flex-wrap gap-3 items-end">
+            <p className="text-2xl sm:text-3xl font-bold text-rose-700">
+              {product.salePrice
+                ? formatPrice(product.salePrice)
+                : product.originalPrice
+                ? formatPrice(product.originalPrice)
+                : formatPrice(product.price)}
+            </p>
+            {product.salePrice && product.originalPrice ? (
+              <span className="text-sm text-gray-400 line-through">
+                {formatPrice(product.originalPrice)}
+              </span>
+            ) : null}
+            {product.salePrice && product.originalPrice ? (
+              <span className="rounded-full bg-rose-700 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                {calculateDiscountPercent(product.originalPrice, product.salePrice)}% OFF
+              </span>
+            ) : null}
+          </div>
+          {product.salePrice ? (
+            <p className="mt-2 text-sm text-rose-700 font-semibold">Offer price</p>
+          ) : null}
           <p className="mt-3 text-xs text-gray-500">Tax included. Shipping calculated at checkout.</p>
 
           <div className="mt-6 sm:mt-8">

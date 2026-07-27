@@ -3,6 +3,21 @@
 import Link from "next/link";
 import { useProducts } from "@/components/context/ProductsContext";
 
+const formatPriceLabel = (value: string) => {
+  const numericValue = Number(String(value).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(numericValue) ? `₹${numericValue.toLocaleString()}` : value;
+};
+
+const calculateDiscountPercent = (originalPrice?: string, salePrice?: string) => {
+  if (!originalPrice || !salePrice) return null;
+  const original = Number(String(originalPrice).replace(/[^0-9.]/g, ""));
+  const sale = Number(String(salePrice).replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(original) || !Number.isFinite(sale) || original <= 0 || sale >= original) {
+    return null;
+  }
+  return Math.round(((original - sale) / original) * 100);
+};
+
 export default function ProductsIndex() {
   const { products, isLoaded, error } = useProducts();
 
@@ -27,25 +42,44 @@ export default function ProductsIndex() {
         </div>
       ) : (
         <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {visibleProducts.map((product) => (
-            <Link
-              key={product.id}
-              href={`/products/${product.id}`}
-              className="group block rounded-xl border p-4 hover:shadow-lg"
-            >
-              <img
-                src={product.thumbnailImage || product.image || ""}
-                alt={product.title}
-                className="h-48 w-full rounded-md object-cover"
-              />
-              <h2 className="mt-3 font-medium text-gray-800 group-hover:text-rose-700">
-                {product.title}
-              </h2>
-              <p className="mt-1 text-rose-700 font-semibold">
-                {product.salePrice || product.originalPrice}
-              </p>
-            </Link>
-          ))}
+          {visibleProducts.map((product) => {
+            const discountPercent = calculateDiscountPercent(
+              product.originalPrice,
+              product.salePrice
+            );
+
+            return (
+              <Link
+                key={product.id}
+                href={`/products/${product.id}`}
+                className="group block rounded-xl border p-4 hover:shadow-lg"
+              >
+                <img
+                  src={product.thumbnailImage || product.image || ""}
+                  alt={product.title}
+                  className="h-[520px] sm:h-[600px] w-full rounded-md object-cover"
+                />
+                <h2 className="mt-3 font-medium text-gray-800 group-hover:text-rose-700">
+                  {product.title}
+                </h2>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <p className="text-rose-700 font-semibold text-lg">
+                    {formatPriceLabel(product.salePrice || product.originalPrice)}
+                  </p>
+                  {product.salePrice && product.originalPrice ? (
+                    <span className="text-sm text-gray-400 line-through">
+                      {formatPriceLabel(product.originalPrice)}
+                    </span>
+                  ) : null}
+                  {discountPercent ? (
+                    <span className="rounded-full bg-rose-700 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                      {discountPercent}% OFF
+                    </span>
+                  ) : null}
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

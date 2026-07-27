@@ -2,57 +2,62 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [allowed, setAllowed] = useState<null | boolean>(null);
 
   useEffect(() => {
-    const auth = getAuth();
-    const unsub = onAuthStateChanged(auth, async (user: User | null) => {
-      if (!user) {
-        router.push("/login");
-        setAllowed(false);
-        return;
-      }
+    if (typeof window === "undefined") return;
 
-      if (!db) {
-        // If Firestore not initialized, deny
-        setAllowed(false);
-        router.push("/login");
-        return;
-      }
-
+    const checkAdmin = async () => {
       try {
-        // Check admins collection by uid
-        const adminDoc = await getDoc(doc(db as any, "admins", user.uid));
-        if (adminDoc.exists()) {
-          setAllowed(true);
+        // Get the current session
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+
+        if (sessionError || !session?.user) {
+          // No authenticated user - redirect to home
+          setAllowed(false);
+          router.push("/");
           return;
         }
 
-        // Fallback: check by email field in admins collection
-        const q = query(collection(db as any, "admins"), where("email", "==", user.email || ""));
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-          setAllowed(true);
+        // Check if user exists in admins table
+        const { data, error } = await supabaseClient
+          .from("admins")
+          .select("*")
+          .or(`uid.eq.${session.user.id},email.eq.${session.user.email}`)
+          .limit(1)
+          .single();
+
+        if (error || !data) {
+          setAllowed(false);
+          router.push("/");
           return;
         }
 
-        // Not an admin
-        setAllowed(false);
-        router.push("/login");
+        setAllowed(true);
       } catch (e) {
         console.error("AdminGuard error:", e);
         setAllowed(false);
-        router.push("/login");
+        router.push("/");
+      }
+    };
+
+    checkAdmin();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_OUT" || !session) {
+        setAllowed(false);
+        router.push("/");
       }
     });
 
-    return () => unsub();
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, [router]);
 
   if (allowed === null) {

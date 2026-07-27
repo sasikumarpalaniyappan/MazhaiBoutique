@@ -45,12 +45,7 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <p className="text-center text-gray-600 mt-6">
-          Already have an account?{" "}
-          <Link href="/login" className="text-rose-600 hover:text-rose-700 font-semibold">
-            Sign In
-          </Link>
-        </p>
+        {/* Sign-in removed; login page has been removed from the app. */}
       </div>
     </div>
   );

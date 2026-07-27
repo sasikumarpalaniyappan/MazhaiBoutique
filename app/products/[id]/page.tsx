@@ -1,6 +1,5 @@
 import ProductDetailPage from "@/components/ProductDetailPage";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { createSupabaseServerClient } from "@/lib/supabaseServer";
 
 export default async function ProductPage({ params }: { params: { id: string } | Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -15,42 +14,54 @@ export default async function ProductPage({ params }: { params: { id: string } |
     );
   }
 
-  if (!db) {
+  let productData: Record<string, any> | null = null;
+  let fetchError: string | null = null;
+
+  try {
+    const supabase = createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      fetchError = error.message;
+    } else if (data) {
+      productData = data;
+    }
+  } catch (e) {
+    fetchError = e instanceof Error ? e.message : String(e);
+  }
+
+  if (fetchError || !productData) {
     return (
       <div className="mt-20 text-center">
-        <h1 className="text-2xl font-semibold">Product not available</h1>
-        <p className="mt-4 text-sm text-gray-600">
-          Cannot connect to Firestore. Check your Firebase environment configuration.
+        <h1 className="text-2xl font-semibold">Product not found</h1>
+        <p className="mt-4 text-sm text-gray-600">Requested id: {String(id)}</p>
+        <p className="mt-2 text-sm text-gray-500">
+          {fetchError ? `Error: ${fetchError}` : "Try another product"}
         </p>
       </div>
     );
   }
 
-  const productRef = doc(db, "products", id);
-  const productSnap = await getDoc(productRef);
-
-  if (!productSnap.exists()) {
-    return (
-      <div className="mt-20 text-center">
-        <h1 className="text-2xl font-semibold">Product not found</h1>
-        <p className="mt-4 text-sm text-gray-600">Requested id: {String(id)}</p>
-        <p className="mt-2 text-sm text-gray-500">Try another product from Firestore</p>
-      </div>
-    );
-  }
-
-  const data = productSnap.data() as Record<string, any>;
-  const rawPrice = data.price ?? data["price "] ?? 0;
-  const rawImage = data.image ?? data["image"] ?? "";
-  const rawName = data.name ?? data["name"] ?? "Untitled Product";
+  const data = productData;
+  const rawPrice = data.price ?? data.original_price ?? 0;
+  const rawOriginalPrice = data.original_price ?? rawPrice;
+  const rawSalePrice = data.sale_price ?? undefined;
+  const rawImage = data.image ?? data.thumbnail_image ?? "";
+  const rawName = data.name ?? data.title ?? "Untitled Product";
 
   const detailProduct = {
-    id: productSnap.id,
+    id: id,
     name: rawName,
-    price: String(rawPrice),
+    price: String(rawSalePrice ?? rawOriginalPrice ?? rawPrice),
+    originalPrice: String(rawOriginalPrice),
+    salePrice: rawSalePrice != null ? String(rawSalePrice) : undefined,
     description: data.description || "A beautifully crafted piece from Mazhai Boutique.",
     images: [String(rawImage)].filter(Boolean) as string[],
-    sizes: data.sizes ?? ["Standard"],
+    sizes: data.available_sizes ?? ["Standard"],
   };
 
   return <ProductDetailPage product={detailProduct} />;

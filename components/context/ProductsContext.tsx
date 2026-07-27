@@ -7,8 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export type CatalogProduct = {
   id: string;
@@ -59,15 +58,6 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
 
     const loadProducts = async () => {
-      if (!db) {
-        const message = "Firestore is not initialized.";
-        console.warn("ProductsContext:", message);
-        setError(message);
-        setProducts([]);
-        setIsLoaded(true);
-        return;
-      }
-
       if (!navigator.onLine) {
         console.log("ProductsContext: Offline mode detected; no products available.");
         setProducts([]);
@@ -76,81 +66,56 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const collectionNames = ["products", "Products", "product", "Product", "items", "Items"];
-        let querySnapshot = null;
-        let foundCollection = "products";
+        const { data, error: fetchError } = await supabaseClient
+          .from("products")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-        for (const name of collectionNames) {
-          const snapshot = await getDocs(collection(db, name));
-          if (snapshot.size > 0) {
-            querySnapshot = snapshot;
-            foundCollection = name;
-            break;
-          }
+        if (fetchError) {
+          throw new Error(fetchError.message);
         }
 
-        if (!querySnapshot || querySnapshot.size === 0) {
-          const message = "Firestore returned no products for known collections.";
-          console.warn("ProductsContext:", message, { triedCollections: collectionNames });
+        if (!data || data.length === 0) {
+          const message = "No products found in database.";
+          console.warn("ProductsContext:", message);
           if (typeof window !== "undefined") {
-            (window as any).__productsSource = "fallback";
-            (window as any).__productsSourceReason = "firestore-no-docs";
-            (window as any).__productsSourceCollections = collectionNames;
+            (window as any).__productsSource = "supabase-empty";
           }
-          setError(message);
+          setError(undefined);
           setProducts([]);
+          setIsLoaded(true);
           return;
         }
 
-        const firebaseProducts = querySnapshot.docs.map((doc) => {
-          const data = doc.data() as any;
-          const rawPrice = data.price ?? data["price "] ?? data["price"] ?? data["price"];
-          const rawImage =
-            data.thumbnailImage ??
-            data.image ??
-            data.imageUrl ??
-            data.img ??
-            data.photo ??
-            data["image"] ??
-            data["image "] ??
-            "";
-          const rawName = data.name ?? data["name"] ?? data["name "];
-          const rawCategory = data.category ?? data["category"] ?? data["category "];
+        const supabaseProducts = data.map((row: any) => ({
+          id: String(row.id),
+          title: String(row.title ?? row.name ?? "Untitled Product"),
+          description: String(row.description ?? ""),
+          category: String(row.category ?? "Sarees"),
+          originalPrice: String(row.original_price ?? row.price ?? "0"),
+          salePrice: row.sale_price ? String(row.sale_price) : undefined,
+          sizes: Array.isArray(row.available_sizes) ? row.available_sizes : [],
+          thumbnailImage: String(row.thumbnail_image ?? row.image ?? ""),
+          galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images : [],
+          name: row.name,
+          price: String(row.sale_price ?? row.original_price ?? row.price ?? "0"),
+          image: String(row.image ?? row.thumbnail_image ?? ""),
+        })) as CatalogProduct[];
 
-          return {
-            id: doc.id,
-            title: rawName || "Untitled Product",
-            description: "",
-            category: rawCategory || "Sarees",
-            originalPrice: String(rawPrice ?? 0),
-            sizes: [],
-            thumbnailImage: String(rawImage || ""),
-            galleryImages: [],
-            name: rawName,
-            price: String(rawPrice ?? 0),
-            image: String(rawImage || ""),
-          } as CatalogProduct;
-        });
-
-        console.log("ProductsContext: Loaded from Firestore", {
-          collection: foundCollection,
-          count: firebaseProducts.length,
-          docs: querySnapshot.docs.length,
-          firstDocId: querySnapshot.docs[0]?.id,
+        console.log("ProductsContext: Loaded from Supabase", {
+          count: supabaseProducts.length,
         });
         if (typeof window !== "undefined") {
-          (window as any).__productsSource = "firestore";
-          (window as any).__productsSourceCollection = foundCollection;
-          (window as any).__productsSourceDocCount = querySnapshot.docs.length;
+          (window as any).__productsSource = "supabase";
+          (window as any).__productsSourceCount = supabaseProducts.length;
         }
         setError(undefined);
-        setProducts(firebaseProducts);
+        setProducts(supabaseProducts);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error("ProductsContext: Firestore failed, loading fallback", error);
+        console.error("ProductsContext: Supabase failed", error);
         if (typeof window !== "undefined") {
-          (window as any).__productsSource = "fallback";
-          (window as any).__productsSourceReason = "firestore-error";
+          (window as any).__productsSource = "error";
           (window as any).__productsSourceError = message;
         }
         setError(message);

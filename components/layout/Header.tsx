@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/components/context/CartContext";
 import { useFavorites } from "@/components/context/FavoritesContext";
 import { useProducts } from "@/components/context/ProductsContext";
@@ -12,6 +12,8 @@ import HeartIcon from "@/components/HeartIcon";
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isAdminPage = pathname?.startsWith("/admin") ?? false;
 
   const { cartItems } = useCart();
   const { favoriteCount, favoriteIds, toggleFavorite } = useFavorites();
@@ -67,71 +69,75 @@ export default function Header() {
             <img src="/mazhai-logo-exact.jpeg" alt="Mazhai Boutique logo" className="block h-full w-auto max-w-[200px] sm:max-w-[580px] object-contain" />
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex flex-1 justify-center min-w-[240px]">
-            <ul className="flex items-center justify-center gap-2 lg:gap-4">
-              {navItems.map((item) => {
-                const isActive = activeNav === item.label;
-                return (
-                  <li key={item.label}>
-                    <Link
-                      href={item.href}
-                      onClick={() => handleNavClick(item.label)}
-                      className={`inline-flex items-center justify-center rounded-full px-3 lg:px-5 py-2 text-xs lg:text-sm font-medium transition-shadow whitespace-nowrap ${
-                          isActive
-                            ? "bg-rose-700 text-white shadow-lg"
-                            : "bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md"
-                        }`}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
+          {!isAdminPage && (
+            <>
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex flex-1 justify-center min-w-[240px]">
+                <ul className="flex items-center justify-center gap-2 lg:gap-4">
+                  {navItems.map((item) => {
+                    const isActive = activeNav === item.label;
+                    return (
+                      <li key={item.label}>
+                        <Link
+                          href={item.href}
+                          onClick={() => handleNavClick(item.label)}
+                          className={`inline-flex items-center justify-center rounded-full px-3 lg:px-5 py-2 text-xs lg:text-sm font-medium transition-shadow whitespace-nowrap ${
+                              isActive
+                                ? "bg-rose-700 text-white shadow-lg"
+                                : "bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md"
+                            }`}
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
 
-          {/* Cart and Favorites Icons */}
-          <div className="flex items-center gap-2 sm:gap-6">
-            <button
-              type="button"
-              onClick={() => setIsFavoritesOpen(true)}
-              className="relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-shadow bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md flex-shrink-0"
-            >
-              <HeartIcon size={16} strokeClass="stroke-rose-700" fillClass="fill-rose-100" />
-              {totalWishlistItems > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-900 px-1 text-xs text-white">
-                  {totalWishlistItems}
-                </span>
-              )}
-            </button>
+              {/* Cart and Favorites Icons */}
+              <div className="flex items-center gap-2 sm:gap-6">
+                <button
+                  type="button"
+                  onClick={() => setIsFavoritesOpen(true)}
+                  className="relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-shadow bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md flex-shrink-0"
+                >
+                  <HeartIcon size={16} strokeClass="stroke-rose-700" fillClass="fill-rose-100" />
+                  {totalWishlistItems > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-900 px-1 text-xs text-white">
+                      {totalWishlistItems}
+                    </span>
+                  )}
+                </button>
 
-            <button
-              type="button"
-              onClick={() => setIsCartOpen(true)}
-              className={`relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-shadow flex-shrink-0 ${
-                isCartOpen ? "bg-rose-700 text-white shadow-lg" : "bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md"
-              }`}
-            >
-              <CartIcon size={18} />
-              {totalCartItems > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-900 px-1 text-xs text-white">
-                  {totalCartItems}
-                </span>
-              )}
-            </button>
+                <button
+                  type="button"
+                  onClick={() => setIsCartOpen(true)}
+                  className={`relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-shadow flex-shrink-0 ${
+                    isCartOpen ? "bg-rose-700 text-white shadow-lg" : "bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md"
+                  }`}
+                >
+                  <CartIcon size={18} />
+                  {totalCartItems > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-900 px-1 text-xs text-white">
+                      {totalCartItems}
+                    </span>
+                  )}
+                </button>
 
-            {/* Mobile Menu Button */}
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 border-2 border-rose-200 text-rose-700 flex-shrink-0"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-              </svg>
-            </button>
-          </div>
+                {/* Mobile Menu Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="md:hidden flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 border-2 border-rose-200 text-rose-700 flex-shrink-0"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+                  </svg>
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Mobile Navigation Menu */}
@@ -161,51 +167,53 @@ export default function Header() {
         )}
       </div>
 
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      {!isAdminPage && <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />}
 
-      <div className={`fixed inset-0 z-[60] transition ${isFavoritesOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
-        <div className={`absolute inset-0 bg-black/30 transition ${isFavoritesOpen ? "opacity-100" : "opacity-0"}`} onClick={() => setIsFavoritesOpen(false)} />
+      {!isAdminPage && (
+        <div className={`fixed inset-0 z-[60] transition ${isFavoritesOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
+          <div className={`absolute inset-0 bg-black/30 transition ${isFavoritesOpen ? "opacity-100" : "opacity-0"}`} onClick={() => setIsFavoritesOpen(false)} />
 
-        <aside className={`absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transition-transform duration-300 ${isFavoritesOpen ? "translate-x-0" : "translate-x-full"}`}>
-          <div className="flex items-center justify-between border-b border-rose-100 px-6 py-4">
-            <div>
-              <h2 className="text-xl font-semibold text-rose-700">Favorites</h2>
-              <p className="text-sm text-gray-500">Saved picks for later</p>
+          <aside className={`absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transition-transform duration-300 ${isFavoritesOpen ? "translate-x-0" : "translate-x-full"}`}>
+            <div className="flex items-center justify-between border-b border-rose-100 px-6 py-4">
+              <div>
+                <h2 className="text-xl font-semibold text-rose-700">Favorites</h2>
+                <p className="text-sm text-gray-500">Saved picks for later</p>
+              </div>
+              <button type="button" onClick={() => setIsFavoritesOpen(false)} className="text-2xl text-gray-500">×</button>
             </div>
-            <button type="button" onClick={() => setIsFavoritesOpen(false)} className="text-2xl text-gray-500">×</button>
-          </div>
 
-          <div className="max-h-[calc(100vh-80px)] overflow-y-auto px-6 py-4">
-            {visibleFavoriteIds.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-rose-200 bg-rose-50 p-6 text-center text-sm text-gray-600">
-                No favorites yet. Tap the heart on any product to save it here.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {visibleFavoriteIds.map((favoriteId) => {
-                  const product = products.find((item) => String(item.id) === String(favoriteId));
-                  if (!product) return null;
-                  const displayPrice = product.salePrice || product.originalPrice || product.price || "—";
+            <div className="max-h-[calc(100vh-80px)] overflow-y-auto px-6 py-4">
+              {visibleFavoriteIds.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-rose-200 bg-rose-50 p-6 text-center text-sm text-gray-600">
+                  No favorites yet. Tap the heart on any product to save it here.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {visibleFavoriteIds.map((favoriteId) => {
+                    const product = products.find((item) => String(item.id) === String(favoriteId));
+                    if (!product) return null;
+                    const displayPrice = product.salePrice || product.originalPrice || product.price || "—";
 
-                  return (
-                    <div key={favoriteId} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3 shadow-sm">
-                      <button type="button" onClick={() => handleOpenFavorite(favoriteId)} className="flex flex-1 items-center gap-3 text-left">
-                        <img src={product.thumbnailImage || product.image || ""} alt={product.title} className="h-16 w-16 rounded-lg object-cover" />
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-800">{product.title}</p>
-                          <p className="text-sm text-rose-700">{displayPrice}</p>
-                          <p className="mt-1 text-xs font-medium text-rose-600">View details →</p>
-                        </div>
-                      </button>
-                      <button type="button" onClick={() => toggleFavorite(favoriteId)} className="text-xl text-rose-700">❤</button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </aside>
-      </div>
+                    return (
+                      <div key={favoriteId} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3 shadow-sm">
+                        <button type="button" onClick={() => handleOpenFavorite(favoriteId)} className="flex flex-1 items-center gap-3 text-left">
+                          <img src={product.thumbnailImage || product.image || ""} alt={product.title} className="h-16 w-16 rounded-lg object-cover" />
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-800">{product.title}</p>
+                            <p className="text-sm text-rose-700">{displayPrice}</p>
+                            <p className="mt-1 text-xs font-medium text-rose-600">View details →</p>
+                          </div>
+                        </button>
+                        <button type="button" onClick={() => toggleFavorite(favoriteId)} className="text-xl text-rose-700">❤</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
+      )}
     </header>
   );
 }

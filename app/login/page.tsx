@@ -1,72 +1,57 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import Link from "next/link";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const checkIsAdmin = async (userUid: string, userEmail?: string | null) => {
-    if (!db) return false;
-    try {
-      const adminDoc = await getDoc(doc(db as any, "admins", userUid));
-      if (adminDoc.exists()) return true;
-      const q = query(collection(db as any, "admins"), where("email", "==", userEmail || ""));
-      const snap = await getDocs(q);
-      return !snap.empty;
-    } catch (e) {
-      console.error("admin check error", e);
-      return false;
-    }
-  };
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError(null);
-    try {
-      const auth = getAuth();
-      const res = await signInWithEmailAndPassword(auth, email, password);
-      const user = res.user;
-      const isAdmin = await checkIsAdmin(user.uid, user.email);
-      if (isAdmin) {
-        router.push("/admin");
-      } else {
-        setError("This account is not an admin. Contact the site owner.");
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err?.message || "Sign-in failed");
-    } finally {
-      setLoading(false);
+    setLoading(true);
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    if (data?.session) {
+      router.push("/admin");
+    } else {
+      setError("Unable to sign in. Please check your email and password.");
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex items-center justify-center px-4 sm:px-6">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 sm:p-10">
-        <h1 className="text-3xl font-bold text-rose-700 mb-2 text-center" style={{ fontFamily: "Cormorant, serif", fontStyle: "italic" }}>
-          Welcome Back
-        </h1>
-        <p className="text-center text-gray-600 mb-8">Sign in to your account</p>
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 sm:p-10">
+        <h1 className="text-3xl font-bold text-rose-700 mb-3 text-center">Admin Login</h1>
+        <p className="text-center text-sm text-gray-500 mb-8">Sign in with your email and password to access the admin dashboard.</p>
 
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+              className="w-full rounded-2xl border border-rose-200 px-4 py-3 text-sm text-gray-900 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100"
               placeholder="you@example.com"
-              className="w-full px-4 py-2 border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-600 focus:border-transparent outline-none"
             />
           </div>
 
@@ -75,29 +60,29 @@ export default function LoginPage() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              className="w-full rounded-2xl border border-rose-200 px-4 py-3 text-sm text-gray-900 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100"
               placeholder="••••••••"
-              className="w-full px-4 py-2 border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-600 focus:border-transparent outline-none"
             />
           </div>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2 rounded-lg transition mt-6 disabled:opacity-60"
+            className="w-full rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
-        {error && <p className="text-center text-red-600 mt-4">{error}</p>}
-
-        <p className="text-center text-gray-600 mt-6">
-          Don't have an account?{" "}
-          <Link href="/register" className="text-rose-600 hover:text-rose-700 font-semibold">
-            Register
-          </Link>
-        </p>
+        <div className="mt-6 text-center text-sm text-gray-500">
+          <p>
+            Need an account? <Link href="/register" className="text-rose-700 font-semibold underline">Register</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

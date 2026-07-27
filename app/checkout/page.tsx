@@ -2,12 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import emailjs from "@emailjs/browser";
 import { useCart } from "@/components/context/CartContext";
+
+const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_YOUR_SERVICE_ID";
+const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_YOUR_TEMPLATE_ID";
+const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, clearCart } = useCart();
   const [formData, setFormData] = useState({ name: "", phone: "", email: "", address: "" });
+  const [isSending, setIsSending] = useState(false);
 
   // keep local snapshot for rendering (CartContext may be empty if user navigates directly)
   const [items, setItems] = useState(cartItems);
@@ -35,7 +41,7 @@ export default function CheckoutPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // minimal validation
     if (!formData.name || !formData.phone || !formData.address) {
@@ -43,7 +49,59 @@ export default function CheckoutPage() {
       return;
     }
 
-    // clear cart then redirect to success
+    let order: any = null;
+
+    try {
+      order = {
+        id: `ORD-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        customer: {
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+        },
+        items,
+        total: totalPrice,
+      };
+
+      const existingOrders = JSON.parse(localStorage.getItem("orders") || "[]");
+      const nextOrders = Array.isArray(existingOrders) ? [order, ...existingOrders] : [order];
+      localStorage.setItem("orders", JSON.stringify(nextOrders));
+      localStorage.setItem("lastOrder", JSON.stringify(order));
+    } catch (error) {
+      console.error("Unable to save order:", error);
+    }
+
+    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
+      alert("EmailJS is not configured. Please set your service, template, and public key.");
+      return;
+    }
+
+    if (order) {
+      setIsSending(true);
+      try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          customer_name: order.customer.name,
+          customer_phone: order.customer.phone,
+          customer_email: order.customer.email || "Not provided",
+          customer_address: order.customer.address,
+          order_details: order.items
+            .map((item: any) => `${item.name} × ${item.quantity} — ₹${((Number(String(item.price).replace(/[^0-9.]/g, "")) || 0) * item.quantity).toLocaleString()}`)
+            .join("\n"),
+          grand_total: `₹${order.total.toLocaleString()}`,
+        }, EMAILJS_PUBLIC_KEY);
+      } catch (error: any) {
+        console.error("EmailJS send failed:", error);
+        const message = error?.text || error?.message || String(error);
+        alert(`Unable to send email. ${message}`);
+        setIsSending(false);
+        return;
+      } finally {
+        setIsSending(false);
+      }
+    }
+
     try {
       clearCart();
     } catch {}
@@ -131,7 +189,13 @@ export default function CheckoutPage() {
               </div>
 
               <div>
-                <button type="submit" className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-full transition">Place Order</button>
+                <button
+                  type="submit"
+                  disabled={isSending}
+                  className={`w-full font-bold py-4 rounded-full transition ${isSending ? "bg-gray-400 cursor-not-allowed" : "bg-rose-600 hover:bg-rose-700 text-white"}`}
+                >
+                  {isSending ? "Sending order…" : "Place Order"}
+                </button>
               </div>
 
               <p className="text-center text-sm text-gray-500">We'll send a confirmation email shortly.</p>

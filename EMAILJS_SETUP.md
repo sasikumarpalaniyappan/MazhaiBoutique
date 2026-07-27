@@ -83,6 +83,15 @@ const EMAILJS_PUBLIC_KEY = "your_actual_public_key_here";
 4. Click "Place Order"
 5. Check your email to verify the order was received
 
+### 7. Confirm the Order Success Page
+- After placing an order, the app should redirect to `/order-success`.
+- The success page is in `app/order-success/page.tsx` and reads the most recent order from `localStorage.lastOrder`.
+- It displays:
+  - Order number
+  - Order summary items
+  - Grand total
+- If the page appears empty, make sure the checkout page is saving `lastOrder` before redirect and that localStorage is enabled in the browser.
+
 ## Features Implemented
 
 ✅ **Form Validation**
