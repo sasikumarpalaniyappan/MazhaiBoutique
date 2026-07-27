@@ -17,9 +17,9 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
 
         if (sessionError || !session?.user) {
-          // No authenticated user - redirect to home
+          // No authenticated user - redirect to login
           setAllowed(false);
-          router.push("/");
+          router.push("/login");
           return;
         }
 
@@ -33,7 +33,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
         if (error || !data) {
           setAllowed(false);
-          router.push("/");
+          router.push("/login");
           return;
         }
 
@@ -51,7 +51,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_OUT" || !session) {
         setAllowed(false);
-        router.push("/");
+        router.push("/login");
       }
     });
 
