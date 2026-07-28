@@ -22,18 +22,18 @@ BEGIN
   SELECT id::text
   INTO v_uid
   FROM auth.users
-  WHERE lower(email) = lower('sasikumar@gmail.com')
+  WHERE lower(email) = lower('sasikumar7688@gmail.com')
   ORDER BY created_at DESC
   LIMIT 1;
 
   IF v_uid IS NOT NULL THEN
     UPDATE admins
     SET uid = v_uid
-    WHERE lower(email) = lower('sasikumar@gmail.com');
+    WHERE lower(email) = lower('sasikumar7688@gmail.com');
 
     IF NOT FOUND THEN
       INSERT INTO admins (uid, email)
-      VALUES (v_uid, 'sasikumar@gmail.com')
+      VALUES (v_uid, 'sasikumar7688@gmail.com')
       ON CONFLICT (uid) DO UPDATE
       SET email = EXCLUDED.email;
     END IF;

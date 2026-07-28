@@ -89,7 +89,7 @@ const getMissingSchemaColumn = (error: unknown) => {
 };
 
 const runProductsWriteWithFallback = async <T,>(
-  operation: (payload: Record<string, any>) => PromiseLike<{ data?: T; error: unknown }> | { data?: T; error: unknown },
+  operation: (payload: Record<string, any>) => PromiseLike<{ data?: T | null; error: unknown }> | { data?: T | null; error: unknown },
   initialPayload: Record<string, any>
 ) => {
   const payload = { ...initialPayload };
@@ -576,7 +576,7 @@ export default function AdminDashboard() {
 
           const { data, error, removedColumns } = await runProductsWriteWithFallback<{ id: string }>(
             async (payload) => {
-              const { data, error } = await supabaseClient
+              const { data, error } = await (supabaseClient as any)
                 .from("products")
                 .insert([payload])
                 .select()
@@ -630,7 +630,7 @@ export default function AdminDashboard() {
       if (!currentId) {
         const { error, removedColumns } = await runProductsWriteWithFallback(
           async (nextPayload) => {
-            const { data, error } = await supabaseClient
+            const { data, error } = await (supabaseClient as any)
               .from("products")
               .insert([nextPayload]);
 
@@ -647,7 +647,7 @@ export default function AdminDashboard() {
       } else {
         const { error, removedColumns } = await runProductsWriteWithFallback(
           async (nextPayload) => {
-            const { data, error } = await supabaseClient
+            const { data, error } = await (supabaseClient as any)
               .from("products")
               .update(nextPayload)
               .eq("id", currentId);
