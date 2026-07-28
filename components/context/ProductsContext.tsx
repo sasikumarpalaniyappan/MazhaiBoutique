@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { products as fallbackProducts } from "@/components/data/products";
 import { hasSupabaseEnv, supabaseClient } from "@/lib/supabaseClient";
 
 export type CatalogProduct = {
@@ -54,6 +55,25 @@ const normalizeProduct = (product: Partial<CatalogProduct> & Record<string, unkn
   image: typeof product.image === "string" ? product.image : undefined,
 });
 
+const buildFallbackProducts = (): CatalogProduct[] =>
+  fallbackProducts.map((product) =>
+    normalizeProduct({
+      id: String(product.id),
+      title: product.name,
+      description: "",
+      category: product.name.toLowerCase().includes("dress") ? "Dresses" : "Sarees",
+      status: "active",
+      isFeatured: true,
+      originalPrice: product.price,
+      sizes: ["Standard"],
+      thumbnailImage: product.image,
+      galleryImages: [product.image],
+      name: product.name,
+      price: product.price,
+      image: product.image,
+    })
+  );
+
 const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
 
 export function ProductsProvider({ children }: { children: React.ReactNode }) {
@@ -66,13 +86,15 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
 
     const loadProducts = async () => {
       if (!hasSupabaseEnv) {
-        const message = "Products are unavailable because Supabase is not configured for this deployment.";
+        const message = "Supabase is not configured for this deployment.";
+        const fallbackCollection = buildFallbackProducts();
         if (typeof window !== "undefined") {
           (window as any).__productsSource = "env-missing";
           (window as any).__productsSourceError = message;
+          (window as any).__productsSourceCount = fallbackCollection.length;
         }
         setError(message);
-        setProducts([]);
+        setProducts(fallbackCollection);
         setIsLoaded(true);
         return;
       }
