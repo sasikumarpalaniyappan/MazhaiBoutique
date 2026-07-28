@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { supabaseClient } from "@/lib/supabaseClient";
+import { hasSupabaseEnv, supabaseClient } from "@/lib/supabaseClient";
 
 export type CatalogProduct = {
   id: string;
@@ -65,6 +65,18 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
 
     const loadProducts = async () => {
+      if (!hasSupabaseEnv) {
+        const message = "Products are unavailable because Supabase is not configured for this deployment.";
+        if (typeof window !== "undefined") {
+          (window as any).__productsSource = "env-missing";
+          (window as any).__productsSourceError = message;
+        }
+        setError(message);
+        setProducts([]);
+        setIsLoaded(true);
+        return;
+      }
+
       if (!navigator.onLine) {
         console.log("ProductsContext: Offline mode detected; no products available.");
         setProducts([]);

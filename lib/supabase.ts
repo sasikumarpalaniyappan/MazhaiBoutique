@@ -15,8 +15,11 @@ const getSupabase = (): SupabaseClientType => {
     throw new Error(missingEnvError);
   }
 
+  const url = supabaseUrl as string;
+  const anonKey = supabaseAnonKey as string;
+
   if (!clientInstance) {
-    clientInstance = createClient(supabaseUrl, supabaseAnonKey);
+    clientInstance = createClient(url, anonKey);
   }
 
   return clientInstance;

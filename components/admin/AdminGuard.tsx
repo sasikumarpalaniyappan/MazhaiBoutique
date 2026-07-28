@@ -2,14 +2,21 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabaseClient } from "@/lib/supabaseClient";
+import { hasSupabaseEnv, supabaseClient } from "@/lib/supabaseClient";
 
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [allowed, setAllowed] = useState<null | boolean>(null);
+  const [guardError, setGuardError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    if (!hasSupabaseEnv) {
+      setAllowed(false);
+      setGuardError("Admin is unavailable because Supabase environment variables are not configured in this deployment.");
+      return;
+    }
 
     const checkAdmin = async () => {
       try {
@@ -40,6 +47,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         setAllowed(true);
       } catch (e) {
         console.error("AdminGuard error:", e);
+        setGuardError(e instanceof Error ? e.message : "Unable to verify admin access.");
         setAllowed(false);
         router.push("/");
       }
@@ -62,6 +70,16 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
   if (allowed === null) {
     return <div className="p-8">Checking admin access...</div>;
+  }
+
+  if (guardError) {
+    return (
+      <div className="p-8">
+        <div className="mx-auto max-w-2xl rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          {guardError}
+        </div>
+      </div>
+    );
   }
 
   if (!allowed) return null;

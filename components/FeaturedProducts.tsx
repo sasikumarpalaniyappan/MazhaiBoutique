@@ -22,7 +22,7 @@ export default function FeaturedProducts() {
 
       {error ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-10 text-center text-sm text-rose-700">
-          <p className="font-semibold">Unable to load products from Firebase.</p>
+          <p className="font-semibold">Unable to load products.</p>
           <p className="mt-1">{error}. Showing fallback product collection.</p>
         </div>
       ) : !isLoaded ? (

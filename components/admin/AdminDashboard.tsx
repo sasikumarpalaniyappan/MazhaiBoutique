@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabaseClient } from "@/lib/supabaseClient";
+import { hasSupabaseEnv, supabaseClient } from "@/lib/supabaseClient";
 import { cloudinaryService } from "@/lib/cloudinary";
 
 type EditableProduct = {
@@ -231,6 +231,14 @@ export default function AdminDashboard() {
   const loadProducts = async () => {
     setError(null);
     setIsLoaded(false);
+
+    if (!hasSupabaseEnv) {
+      setError("Admin is unavailable because Supabase environment variables are not configured in this deployment.");
+      setProducts([]);
+      setIsLoaded(true);
+      return;
+    }
+
     try {
       const { data, error: fetchError } = await supabaseClient
         .from("products")
@@ -713,9 +721,13 @@ export default function AdminDashboard() {
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <button onClick={() => router.push("/admin/orders")} className="px-3 sm:px-4 py-2 rounded border border-rose-300 bg-white text-rose-700 text-sm">Order Details</button>
-          <button onClick={handleAddProduct} className="px-3 sm:px-4 py-2 rounded bg-rose-600 text-white text-sm">+ Add New Product</button>
+          <button onClick={handleAddProduct} disabled={!hasSupabaseEnv} className="px-3 sm:px-4 py-2 rounded bg-rose-600 text-white text-sm disabled:cursor-not-allowed disabled:opacity-50">+ Add New Product</button>
         </div>
       </div>
+
+      {error ? (
+        <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div>
+      ) : null}
 
       <div className="bg-white shadow rounded overflow-hidden">
         {/* Desktop Table - Hidden on mobile */}
