@@ -14,6 +14,8 @@ export type CatalogProduct = {
   title: string;
   description: string;
   category: string;
+  status?: "draft" | "active" | "archived";
+  isFeatured?: boolean;
   originalPrice: string;
   salePrice?: string;
   sizes: string[];
@@ -35,6 +37,11 @@ const normalizeProduct = (product: Partial<CatalogProduct> & Record<string, unkn
   title: String(product.title ?? product.name ?? "Untitled Product"),
   description: String(product.description ?? ""),
   category: String(product.category ?? "Sarees"),
+  status:
+    product.status === "draft" || product.status === "archived" || product.status === "active"
+      ? product.status
+      : "active",
+  isFeatured: Boolean(product.isFeatured),
   originalPrice: String(product.originalPrice ?? product.price ?? "0"),
   salePrice: product.salePrice ? String(product.salePrice) : undefined,
   sizes: Array.isArray(product.sizes) ? product.sizes.map(String) : [],
@@ -87,20 +94,36 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const supabaseProducts = data.map((row: any) => ({
-          id: String(row.id),
-          title: String(row.title ?? row.name ?? "Untitled Product"),
-          description: String(row.description ?? ""),
-          category: String(row.category ?? "Sarees"),
-          originalPrice: String(row.original_price ?? row.price ?? "0"),
-          salePrice: row.sale_price ? String(row.sale_price) : undefined,
-          sizes: Array.isArray(row.available_sizes) ? row.available_sizes : [],
-          thumbnailImage: String(row.thumbnail_image ?? row.image ?? ""),
-          galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images : [],
-          name: row.name,
-          price: String(row.sale_price ?? row.original_price ?? row.price ?? "0"),
-          image: String(row.image ?? row.thumbnail_image ?? ""),
-        })) as CatalogProduct[];
+        const supabaseProducts = data.map((row: any) => {
+          const galleryImages = Array.isArray(row.gallery_images) ? row.gallery_images : [];
+          const thumbnailImage = typeof row.thumbnail_image === "string" ? row.thumbnail_image : "";
+          const imageField = typeof row.image === "string" ? row.image : "";
+          const fallbackImage = galleryImages[0] ? String(galleryImages[0]) : "";
+          const primaryImage = String(fallbackImage || thumbnailImage || imageField || "");
+          const normalizedGallery = Array.from(
+            new Set([primaryImage, ...galleryImages.map(String), thumbnailImage, imageField].filter(Boolean))
+          );
+
+          return {
+            id: String(row.id),
+            title: String(row.title ?? row.name ?? "Untitled Product"),
+            description: String(row.description ?? ""),
+            category: String(row.category ?? "Sarees"),
+            status:
+              row.status === "draft" || row.status === "archived" || row.status === "active"
+                ? row.status
+                : "active",
+            isFeatured: Boolean(row.is_featured),
+            originalPrice: String(row.original_price ?? row.price ?? "0"),
+            salePrice: row.sale_price ? String(row.sale_price) : undefined,
+            sizes: Array.isArray(row.available_sizes) ? row.available_sizes : [],
+            thumbnailImage: primaryImage,
+            galleryImages: normalizedGallery,
+            name: row.name,
+            price: String(row.sale_price ?? row.original_price ?? row.price ?? "0"),
+            image: primaryImage,
+          };
+        }) as CatalogProduct[];
 
         console.log("ProductsContext: Loaded from Supabase", {
           count: supabaseProducts.length,
@@ -128,11 +151,17 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     loadProducts();
 
     const handleOnline = () => loadProducts();
+    const handleProductsUpdated = () => loadProducts();
+    const handleFocus = () => loadProducts();
 
     window.addEventListener("online", handleOnline);
+    window.addEventListener("products:updated", handleProductsUpdated as EventListener);
+    window.addEventListener("focus", handleFocus);
 
     return () => {
       window.removeEventListener("online", handleOnline);
+      window.removeEventListener("products:updated", handleProductsUpdated as EventListener);
+      window.removeEventListener("focus", handleFocus);
     };
   }, []);
 

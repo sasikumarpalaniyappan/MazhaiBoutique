@@ -50,7 +50,11 @@ export default async function ProductPage({ params }: { params: { id: string } |
   const rawPrice = data.price ?? data.original_price ?? 0;
   const rawOriginalPrice = data.original_price ?? rawPrice;
   const rawSalePrice = data.sale_price ?? undefined;
-  const rawImage = data.image ?? data.thumbnail_image ?? "";
+  const galleryImages = Array.isArray(data.gallery_images)
+    ? data.gallery_images.map(String).filter(Boolean)
+    : [];
+  const primaryImage = String(galleryImages[0] ?? data.thumbnail_image ?? data.image ?? "");
+  const detailImages = Array.from(new Set([primaryImage, ...galleryImages].filter(Boolean)));
   const rawName = data.name ?? data.title ?? "Untitled Product";
 
   const detailProduct = {
@@ -60,7 +64,7 @@ export default async function ProductPage({ params }: { params: { id: string } |
     originalPrice: String(rawOriginalPrice),
     salePrice: rawSalePrice != null ? String(rawSalePrice) : undefined,
     description: data.description || "A beautifully crafted piece from Mazhai Boutique.",
-    images: [String(rawImage)].filter(Boolean) as string[],
+    images: detailImages,
     sizes: data.available_sizes ?? ["Standard"],
   };
 

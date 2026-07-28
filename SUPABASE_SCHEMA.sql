@@ -45,8 +45,14 @@ CREATE POLICY "Products are public" ON products FOR SELECT USING (true);
 -- Create policy for admin insert/update/delete
 CREATE POLICY "Admins can manage products" ON products 
   FOR ALL 
-  USING (auth.uid()::text IN (SELECT uid FROM admins))
-  WITH CHECK (auth.uid()::text IN (SELECT uid FROM admins));
+  USING (
+    auth.uid()::text IN (SELECT uid FROM admins)
+    OR lower(coalesce(auth.jwt() ->> 'email', '')) IN (SELECT lower(email) FROM admins)
+  )
+  WITH CHECK (
+    auth.uid()::text IN (SELECT uid FROM admins)
+    OR lower(coalesce(auth.jwt() ->> 'email', '')) IN (SELECT lower(email) FROM admins)
+  );
 
 -- Create policy for admin read access to admins table
 CREATE POLICY "Admins can view admins" ON admins FOR SELECT USING (true);

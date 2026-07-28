@@ -2,18 +2,23 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabaseClient, supabaseUrl } from "@/lib/supabaseClient";
+import { supabaseClient } from "@/lib/supabaseClient";
+import { cloudinaryService } from "@/lib/cloudinary";
 
 type EditableProduct = {
   id?: string;
   title: string;
   description?: string;
   category?: string;
+  status?: "draft" | "active" | "archived";
+  isFeatured?: boolean;
   originalPrice?: string;
   salePrice?: string;
   thumbnailImage?: string;
+  thumbnailPublicId?: string;
   image?: string;
   galleryImages?: string[];
+  galleryImagePublicIds?: string[];
   availableSizes?: string[];
 };
 
@@ -28,7 +33,8 @@ const isValidImageUrl = (value?: unknown) => {
 };
 
 const normalizeProduct = (row: any): EditableProduct => {
-  const rawImageValue = row.thumbnail_image ?? row.image ?? "";
+  const galleryImages = Array.isArray(row.gallery_images) ? row.gallery_images.map(String).filter(Boolean) : [];
+  const rawImageValue = galleryImages[0] ?? row.thumbnail_image ?? row.image ?? "";
   const imageValue = isValidImageUrl(rawImageValue) ? String(rawImageValue) : "";
 
   return {
@@ -36,11 +42,15 @@ const normalizeProduct = (row: any): EditableProduct => {
     title: String(row.title ?? row.name ?? "Untitled Product"),
     description: String(row.description ?? ""),
     category: String(row.category ?? "Sarees"),
+    status: (row.status === "draft" || row.status === "archived" || row.status === "active") ? row.status : "active",
+    isFeatured: Boolean(row.is_featured),
     originalPrice: String(row.original_price ?? row.price ?? "0"),
     salePrice: row.sale_price != null ? String(row.sale_price) : "",
     thumbnailImage: imageValue,
+    thumbnailPublicId: typeof row.thumbnail_public_id === "string" ? row.thumbnail_public_id : "",
     image: imageValue,
-    galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images : [],
+    galleryImages,
+    galleryImagePublicIds: Array.isArray(row.gallery_image_public_ids) ? row.gallery_image_public_ids : [],
     availableSizes: Array.isArray(row.available_sizes) ? row.available_sizes : [],
   };
 };
@@ -51,6 +61,14 @@ const sanitizeFileName = (value?: string) => {
     .trim()
     .replace(/\s+/g, "_")
     .replace(/[^A-Za-z0-9._-]/g, "_");
+};
+
+const revokeObjectUrls = (urls: string[]) => {
+  urls.forEach((url) => {
+    if (isBlobUrl(url)) {
+      URL.revokeObjectURL(url);
+    }
+  });
 };
 
 const getSupabaseErrorMessage = (error: unknown) => {
@@ -64,6 +82,49 @@ const getSupabaseErrorMessage = (error: unknown) => {
   );
 };
 
+const getMissingSchemaColumn = (error: unknown) => {
+  const message = getSupabaseErrorMessage(error);
+  const match = message.match(/Could not find the '([^']+)' column of 'products' in the schema cache/i);
+  return match?.[1] ?? null;
+};
+
+const runProductsWriteWithFallback = async <T,>(
+  operation: (payload: Record<string, any>) => PromiseLike<{ data?: T; error: unknown }> | { data?: T; error: unknown },
+  initialPayload: Record<string, any>
+) => {
+  const payload = { ...initialPayload };
+  const removedColumns = new Set<string>();
+
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const result = await operation(payload);
+    if (!result.error) {
+      return {
+        data: result.data,
+        error: null,
+        removedColumns: Array.from(removedColumns),
+      };
+    }
+
+    const missingColumn = getMissingSchemaColumn(result.error);
+    if (!missingColumn || !(missingColumn in payload)) {
+      return {
+        data: result.data,
+        error: result.error,
+        removedColumns: Array.from(removedColumns),
+      };
+    }
+
+    delete payload[missingColumn];
+    removedColumns.add(missingColumn);
+  }
+
+  return {
+    data: undefined,
+    error: new Error("Failed to write product after schema fallback attempts."),
+    removedColumns: Array.from(removedColumns),
+  };
+};
+
 const computeDiscountPercent = (originalPrice?: string, salePrice?: string) => {
   if (!originalPrice || !salePrice) return "-";
   const original = Number(String(originalPrice).replace(/[^0-9.]/g, ""));
@@ -72,6 +133,63 @@ const computeDiscountPercent = (originalPrice?: string, salePrice?: string) => {
     return "-";
   }
   return `${Math.round(((original - sale) / original) * 100)}%`;
+};
+
+type ProductFormErrors = {
+  title?: string;
+  category?: string;
+  originalPrice?: string;
+  salePrice?: string;
+};
+
+const parsePriceValue = (value?: string) => {
+  if (!value) return NaN;
+  return Number(String(value).replace(/[^0-9.]/g, ""));
+};
+
+const validateProductForm = (product: EditableProduct): ProductFormErrors => {
+  const errors: ProductFormErrors = {};
+  const title = (product.title || "").trim();
+  const category = (product.category || "").trim();
+  const original = parsePriceValue(product.originalPrice);
+  const hasSale = typeof product.salePrice !== "undefined" && String(product.salePrice).trim() !== "";
+  const sale = parsePriceValue(product.salePrice);
+
+  if (!title) {
+    errors.title = "Title is required.";
+  }
+
+  if (!category) {
+    errors.category = "Category is required.";
+  }
+
+  if (!Number.isFinite(original) || original <= 0) {
+    errors.originalPrice = "Original price must be a valid number greater than 0.";
+  }
+
+  if (hasSale) {
+    if (!Number.isFinite(sale) || sale <= 0) {
+      errors.salePrice = "Sale price must be a valid number greater than 0.";
+    } else if (Number.isFinite(original) && sale >= original) {
+      errors.salePrice = "Sale price must be lower than original price.";
+    }
+  }
+
+  return errors;
+};
+
+const syncPrimaryWithGallery = (product: EditableProduct): EditableProduct => {
+  const firstGalleryImage = product.galleryImages?.[0] || "";
+  const firstGalleryPublicId = product.galleryImagePublicIds?.[0] || "";
+
+  if (!firstGalleryImage) return product;
+
+  return {
+    ...product,
+    thumbnailImage: firstGalleryImage,
+    image: firstGalleryImage,
+    thumbnailPublicId: firstGalleryPublicId,
+  };
 };
 
 export default function AdminDashboard() {
@@ -85,6 +203,10 @@ export default function AdminDashboard() {
   const [manualImageUrl, setManualImageUrl] = useState<string>("");
   const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<string[]>([]);
   const [selectedThumbnailFile, setSelectedThumbnailFile] = useState<File | null>(null);
+  const [thumbnailUploadProgress, setThumbnailUploadProgress] = useState<number | null>(null);
+  const [galleryUploadProgress, setGalleryUploadProgress] = useState<number | null>(null);
+  const [formErrors, setFormErrors] = useState<ProductFormErrors>({});
+  const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     editingRef.current = editing;
@@ -145,23 +267,32 @@ export default function AdminDashboard() {
     }
     setManualImageUrl("");
     setSelectedThumbnailFile(null);
+    setThumbnailUploadProgress(null);
+    setGalleryUploadProgress(null);
+    revokeObjectUrls(galleryPreviewUrls);
+    setGalleryPreviewUrls([]);
+    setFormErrors({});
+    setSaveFeedback(null);
   };
 
   const handleEdit = (id: string) => {
     const p = products.find((x) => x.id === id);
     if (!p) return;
     resetUploadState();
-    setGalleryPreviewUrls([]);
     setEditing({
       id: p.id,
       title: p.title,
       description: p.description,
       category: p.category,
+      status: p.status ?? "active",
+      isFeatured: Boolean(p.isFeatured),
       originalPrice: p.originalPrice,
       salePrice: p.salePrice,
       thumbnailImage: p.thumbnailImage,
+      thumbnailPublicId: p.thumbnailPublicId,
       image: p.image,
       galleryImages: p.galleryImages ?? [],
+      galleryImagePublicIds: p.galleryImagePublicIds ?? [],
       availableSizes: p.availableSizes ?? [],
     });
   };
@@ -170,39 +301,54 @@ export default function AdminDashboard() {
     if (!editing) return;
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    let previewUrlsToRevoke: string[] = [];
 
     try {
-      const filesToProcess = Array.from(files).slice(0, 4);
-      const uploadedUrls: string[] = [];
-
-      for (const file of filesToProcess) {
-        const filename = `${editing.id || 'draft'}_gallery_${Date.now()}_${Math.random().toString(36).substring(7)}_${sanitizeFileName(file.name)}`;
-        const filePath = `product_gallery/${filename}`;
-
-        const { error: uploadError } = await supabaseClient.storage
-          .from("product-images")
-          .upload(filePath, file, { contentType: file.type || undefined });
-
-        if (uploadError) throw uploadError;
-
-        const { data } = supabaseClient.storage.from("product-images").getPublicUrl(filePath);
-        if (!data?.publicUrl) throw new Error("Failed to generate public URL for gallery image");
-        uploadedUrls.push(data.publicUrl);
+      const existingCount = editing.galleryImages?.length || 0;
+      const availableSlots = Math.max(0, 4 - existingCount);
+      if (availableSlots === 0) {
+        e.target.value = "";
+        return;
       }
+
+      const filesToProcess = Array.from(files).slice(0, availableSlots);
+      const localPreviews = filesToProcess.map((file) => URL.createObjectURL(file));
+      previewUrlsToRevoke = localPreviews;
+      setGalleryPreviewUrls(localPreviews);
+      setGalleryUploadProgress(0);
+
+      const uploaded = await cloudinaryService.uploadImages(filesToProcess, {
+        folder: "mazhai-boutique/product_gallery",
+        tags: ["mazhai-boutique", "product", "gallery"],
+        onOverallProgress: (percent) => setGalleryUploadProgress(percent),
+      });
+
+      const uploadedUrls = uploaded.map((item) => item.secureUrl).filter(Boolean);
+      const uploadedPublicIds = uploaded.map((item) => item.publicId).filter(Boolean);
 
       if (uploadedUrls.length > 0) {
         setEditing((prev) => {
           if (!prev) return prev;
-          const updated = { ...prev, galleryImages: [...(prev.galleryImages || []), ...uploadedUrls].slice(0, 4) };
+          const updated = syncPrimaryWithGallery({
+            ...prev,
+            galleryImages: [...(prev.galleryImages || []), ...uploadedUrls].slice(0, 4),
+            galleryImagePublicIds: [...(prev.galleryImagePublicIds || []), ...uploadedPublicIds].slice(0, 4),
+          });
           return updated;
         });
       }
 
       e.target.value = "";
+      setGalleryUploadProgress(100);
     } catch (error: any) {
       const message = getSupabaseErrorMessage(error);
       console.error("Gallery image upload failed:", message, error);
+      setSaveFeedback(`Gallery image upload failed: ${message}`);
       alert(`Gallery image upload failed: ${message}`);
+    } finally {
+      revokeObjectUrls(previewUrlsToRevoke);
+      setGalleryPreviewUrls([]);
+      setGalleryUploadProgress(null);
     }
   };
 
@@ -224,29 +370,144 @@ export default function AdminDashboard() {
     } catch (error: any) {
       const message = getSupabaseErrorMessage(error);
       console.error("Image preview setup failed:", message, error);
+      setSaveFeedback(`Image preview setup failed: ${message}`);
       alert(`Image preview setup failed: ${message}`);
     }
   };
 
+  const handleRemoveThumbnailImage = async () => {
+    if (!editing) return;
+
+    const hasLocalSelection = Boolean(selectedThumbnailFile || localPreviewUrl);
+    const hasStoredThumbnail = Boolean(editing.thumbnailImage || editing.image);
+
+    if (!hasLocalSelection && !hasStoredThumbnail) return;
+    if (!confirm("Remove thumbnail image?")) return;
+
+    try {
+      if (editing.thumbnailPublicId) {
+        await cloudinaryService.deleteByPublicId(editing.thumbnailPublicId);
+      }
+
+      if (localPreviewUrl) {
+        URL.revokeObjectURL(localPreviewUrl);
+      }
+
+      setLocalPreviewUrl(null);
+      setSelectedThumbnailFile(null);
+      setManualImageUrl("");
+      setEditing((prev) =>
+        prev
+          ? {
+              ...prev,
+              thumbnailImage: "",
+              thumbnailPublicId: "",
+              image: "",
+            }
+          : prev
+      );
+    } catch (error) {
+      const message = getSupabaseErrorMessage(error);
+      alert(`Thumbnail delete failed: ${message}`);
+    }
+  };
+
+  const handleRemoveGalleryImage = async (index: number) => {
+    if (!editing) return;
+
+    const imageUrl = editing.galleryImages?.[index];
+    if (!imageUrl) return;
+    if (!confirm("Remove this gallery image?")) return;
+
+    try {
+      const publicId = editing.galleryImagePublicIds?.[index];
+      if (publicId) {
+        await cloudinaryService.deleteByPublicId(publicId);
+      }
+
+      setEditing((prev) => {
+        if (!prev) return prev;
+        const nextImages = [...(prev.galleryImages || [])];
+        const nextPublicIds = [...(prev.galleryImagePublicIds || [])];
+        nextImages.splice(index, 1);
+        nextPublicIds.splice(index, 1);
+
+        return syncPrimaryWithGallery({
+          ...prev,
+          galleryImages: nextImages,
+          galleryImagePublicIds: nextPublicIds,
+        });
+      });
+    } catch (error) {
+      const message = getSupabaseErrorMessage(error);
+      alert(`Gallery image delete failed: ${message}`);
+    }
+  };
+
+  const handleMoveGalleryImage = (fromIndex: number, toIndex: number) => {
+    if (!editing) return;
+
+    const galleryImages = editing.galleryImages || [];
+    if (fromIndex < 0 || toIndex < 0) return;
+    if (fromIndex >= galleryImages.length || toIndex >= galleryImages.length) return;
+
+    setEditing((prev) => {
+      if (!prev) return prev;
+
+      const nextImages = [...(prev.galleryImages || [])];
+      const nextPublicIds = [...(prev.galleryImagePublicIds || [])];
+
+      const [movedImage] = nextImages.splice(fromIndex, 1);
+      nextImages.splice(toIndex, 0, movedImage);
+
+      if (nextPublicIds.length > 0) {
+        const [movedPublicId] = nextPublicIds.splice(fromIndex, 1);
+        nextPublicIds.splice(toIndex, 0, movedPublicId);
+      }
+
+      return syncPrimaryWithGallery({
+        ...prev,
+        galleryImages: nextImages,
+        galleryImagePublicIds: nextPublicIds,
+      });
+    });
+  };
+
   const uploadThumbnailForProduct = async (productId: string, file: File) => {
-    const filename = `${productId}_${Date.now()}_${sanitizeFileName(file.name)}`;
-    const filePath = `product_thumbnails/${filename}`;
+    const filenameTag = sanitizeFileName(file.name);
+    const result = await cloudinaryService.uploadImage(file, {
+      folder: `mazhai-boutique/product_thumbnails/${productId}`,
+      tags: ["mazhai-boutique", "product", "thumbnail", filenameTag],
+      onProgress: (percent) => setThumbnailUploadProgress(percent),
+    });
 
-    const { error: uploadError } = await supabaseClient.storage
-      .from("product-images")
-      .upload(filePath, file, { contentType: file.type || undefined });
-
-    if (uploadError) throw uploadError;
-
-    const { data } = supabaseClient.storage.from("product-images").getPublicUrl(filePath);
-    if (!data?.publicUrl) throw new Error("Failed to generate public URL for thumbnail image");
-
-    return data.publicUrl;
+    return {
+      secureUrl: result.secureUrl,
+      publicId: result.publicId,
+    };
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this product?")) return;
     try {
+      const target = products.find((p) => String(p.id) === String(id));
+      const publicIds = [
+        ...(target?.thumbnailPublicId ? [target.thumbnailPublicId] : []),
+        ...((target?.galleryImagePublicIds || []).filter(Boolean) as string[]),
+      ];
+
+      if (publicIds.length > 0) {
+        await Promise.all(
+          publicIds.map(async (publicId) => {
+            try {
+              await cloudinaryService.deleteByPublicId(publicId);
+            } catch (deleteError) {
+              console.warn("Cloudinary asset cleanup failed:", publicId, deleteError);
+            }
+          })
+        );
+      }
+
       const { error } = await supabaseClient
         .from("products")
         .delete()
@@ -255,6 +516,9 @@ export default function AdminDashboard() {
       if (error) throw error;
 
       await loadProducts();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("products:updated"));
+      }
       if (editing?.id === id) {
         setEditing(null);
       }
@@ -267,24 +531,42 @@ export default function AdminDashboard() {
   const handleSave = async () => {
     if (!editing) return;
 
+    const validationErrors = validateProductForm(editing);
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      setSaveFeedback("Please fix the highlighted fields before saving.");
+      return;
+    }
+
+    setFormErrors({});
+    setSaveFeedback(null);
+
     setSaving(true);
 
     try {
-      let imageUrl = editing.thumbnailImage ?? editing.image ?? "";
+      const firstGalleryImage = editing.galleryImages?.[0] || "";
+      const firstGalleryPublicId = editing.galleryImagePublicIds?.[0] || "";
+      let imageUrl = firstGalleryImage || editing.thumbnailImage || editing.image || "";
+      let thumbnailPublicId = firstGalleryPublicId || editing.thumbnailPublicId || "";
       let currentId = editing.id;
 
       if (selectedThumbnailFile) {
+        setThumbnailUploadProgress(0);
         if (!currentId) {
           const draftPayload: Record<string, any> = {
             name: editing.title,
             title: editing.title,
             description: editing.description ?? "",
             category: editing.category ?? "",
+            status: editing.status ?? "active",
+            is_featured: Boolean(editing.isFeatured),
             price: editing.originalPrice ?? "0",
             original_price: editing.originalPrice ?? "0",
             thumbnail_image: "",
+            thumbnail_public_id: "",
             image: "",
             gallery_images: editing.galleryImages ?? [],
+            gallery_image_public_ids: editing.galleryImagePublicIds ?? [],
             available_sizes: editing.availableSizes ?? [],
           };
 
@@ -292,14 +574,25 @@ export default function AdminDashboard() {
             draftPayload.sale_price = editing.salePrice;
           }
 
-          const { data, error } = await supabaseClient
-            .from("products")
-            .insert([draftPayload])
-            .select()
-            .single();
+          const { data, error, removedColumns } = await runProductsWriteWithFallback<{ id: string }>(
+            async (payload) => {
+              const { data, error } = await supabaseClient
+                .from("products")
+                .insert([payload])
+                .select()
+                .single();
+
+              return { data, error };
+            },
+            draftPayload
+          );
 
           if (error) throw error;
           if (!data?.id) throw new Error("Failed to create draft product");
+
+          if (removedColumns.length > 0) {
+            console.warn("Draft save skipped columns not yet in Supabase schema:", removedColumns);
+          }
 
           currentId = data.id;
         }
@@ -308,7 +601,9 @@ export default function AdminDashboard() {
           throw new Error("Could not determine product id for thumbnail upload");
         }
 
-        imageUrl = await uploadThumbnailForProduct(currentId, selectedThumbnailFile);
+        const thumbnailUpload = await uploadThumbnailForProduct(currentId, selectedThumbnailFile);
+        imageUrl = thumbnailUpload.secureUrl;
+        thumbnailPublicId = thumbnailUpload.publicId;
       }
 
       const payload: Record<string, any> = {
@@ -316,11 +611,15 @@ export default function AdminDashboard() {
         title: editing.title,
         description: editing.description ?? "",
         category: editing.category ?? "",
+        status: editing.status ?? "active",
+        is_featured: Boolean(editing.isFeatured),
         price: editing.originalPrice ?? "0",
         original_price: editing.originalPrice ?? "0",
-        thumbnail_image: imageUrl,
-        image: imageUrl || editing.image || "",
+        thumbnail_image: imageUrl || firstGalleryImage,
+        thumbnail_public_id: thumbnailPublicId,
+        image: imageUrl || firstGalleryImage,
         gallery_images: editing.galleryImages ?? [],
+        gallery_image_public_ids: editing.galleryImagePublicIds ?? [],
         available_sizes: editing.availableSizes ?? [],
       };
 
@@ -329,44 +628,76 @@ export default function AdminDashboard() {
       }
 
       if (!currentId) {
-        const { error } = await supabaseClient
-          .from("products")
-          .insert([payload]);
+        const { error, removedColumns } = await runProductsWriteWithFallback(
+          async (nextPayload) => {
+            const { data, error } = await supabaseClient
+              .from("products")
+              .insert([nextPayload]);
+
+            return { data, error };
+          },
+          payload
+        );
+
+        if (removedColumns.length > 0) {
+          console.warn("Product insert skipped columns not yet in Supabase schema:", removedColumns);
+        }
+
         if (error) throw error;
       } else {
-        const { error } = await supabaseClient
-          .from("products")
-          .update(payload)
-          .eq("id", currentId);
+        const { error, removedColumns } = await runProductsWriteWithFallback(
+          async (nextPayload) => {
+            const { data, error } = await supabaseClient
+              .from("products")
+              .update(nextPayload)
+              .eq("id", currentId);
+
+            return { data, error };
+          },
+          payload
+        );
+
+        if (removedColumns.length > 0) {
+          console.warn("Product update skipped columns not yet in Supabase schema:", removedColumns);
+        }
+
         if (error) throw error;
       }
 
       await loadProducts();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("products:updated"));
+      }
       resetUploadState();
-      setGalleryPreviewUrls([]);
+      setSaveFeedback("Product saved successfully.");
       setEditing(null);
     } catch (e) {
       const message = getSupabaseErrorMessage(e);
       console.error("Save failed:", e, message);
       setError(message);
+      setSaveFeedback(`Save failed: ${message}`);
       alert("Save failed: " + message);
     } finally {
       setSaving(false);
+      setThumbnailUploadProgress(null);
     }
   };
 
   const handleAddProduct = () => {
     resetUploadState();
-    setGalleryPreviewUrls([]);
     setEditing({
       title: "New Product",
       description: "",
       category: "Sarees",
+      status: "active",
+      isFeatured: false,
       originalPrice: "0",
       salePrice: "",
       thumbnailImage: "",
+      thumbnailPublicId: "",
       image: "",
       galleryImages: [],
+      galleryImagePublicIds: [],
       availableSizes: [],
     });
   };
@@ -395,6 +726,8 @@ export default function AdminDashboard() {
                 <th className="p-4">Thumbnail</th>
                 <th className="p-4">Title</th>
                 <th className="p-4">Category</th>
+                <th className="p-4">Status</th>
+                <th className="p-4">Featured</th>
                 <th className="p-4">Original Price</th>
                 <th className="p-4">Sale Price</th>
                 <th className="p-4">Discount</th>
@@ -423,6 +756,8 @@ export default function AdminDashboard() {
                   </td>
                   <td className="p-4">{p.title}</td>
                   <td className="p-4">{p.category}</td>
+                  <td className="p-4 capitalize">{p.status || "active"}</td>
+                  <td className="p-4">{p.isFeatured ? "Yes" : "No"}</td>
                   <td className="p-4">{p.originalPrice}</td>
                   <td className="p-4">{p.salePrice ?? "-"}</td>
                   <td className="p-4">{computeDiscountPercent(p.originalPrice, p.salePrice)}</td>
@@ -461,6 +796,8 @@ export default function AdminDashboard() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm truncate">{p.title}</h3>
                     <p className="text-xs text-gray-500">{p.category}</p>
+                    <p className="text-xs text-gray-500 mt-1">Status: <span className="capitalize">{p.status || "active"}</span></p>
+                    <p className="text-xs text-gray-500">Featured: {p.isFeatured ? "Yes" : "No"}</p>
                     <div className="mt-2 space-y-1 text-xs">
                       <p><span className="text-gray-600">Original:</span> ₹{p.originalPrice}</p>
                       <p><span className="text-gray-600">Sale:</span> {p.salePrice ?? "-"}</p>
@@ -492,12 +829,19 @@ export default function AdminDashboard() {
               <button onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-600 text-xl flex-shrink-0">Close</button>
             </div>
 
+            {saveFeedback ? (
+              <div className={`mb-4 rounded border px-3 py-2 text-xs sm:text-sm ${saveFeedback.startsWith("Product saved") ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>
+                {saveFeedback}
+              </div>
+            ) : null}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {/* Left Column */}
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs sm:text-sm text-gray-600 font-semibold mb-1">Title</label>
-                  <input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="w-full border border-gray-200 rounded px-3 py-2 text-sm" />
+                  <input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className={`w-full border rounded px-3 py-2 text-sm ${formErrors.title ? "border-rose-400" : "border-gray-200"}`} />
+                  {formErrors.title ? <p className="mt-1 text-xs text-rose-600">{formErrors.title}</p> : null}
                 </div>
 
                 <div>
@@ -507,17 +851,52 @@ export default function AdminDashboard() {
 
                 <div>
                   <label className="block text-xs sm:text-sm text-gray-600 font-semibold mb-1">Category</label>
-                  <input value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className="w-full border border-gray-200 rounded px-3 py-2 text-sm" />
+                  <input value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className={`w-full border rounded px-3 py-2 text-sm ${formErrors.category ? "border-rose-400" : "border-gray-200"}`} />
+                  {formErrors.category ? <p className="mt-1 text-xs text-rose-600">{formErrors.category}</p> : null}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs sm:text-sm text-gray-600 font-semibold mb-1">Status</label>
+                    <select
+                      value={editing.status ?? "active"}
+                      onChange={(e) =>
+                        setEditing({
+                          ...editing,
+                          status: e.target.value as "draft" | "active" | "archived",
+                        })
+                      }
+                      className="w-full border border-gray-200 rounded px-3 py-2 text-sm bg-white"
+                    >
+                      <option value="active">Active</option>
+                      <option value="draft">Draft</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm text-gray-600 font-semibold mb-1">Featured</label>
+                    <label className="h-[42px] border border-gray-200 rounded px-3 py-2 text-sm flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(editing.isFeatured)}
+                        onChange={(e) => setEditing({ ...editing, isFeatured: e.target.checked })}
+                        className="w-4 h-4 rounded"
+                      />
+                      <span>{editing.isFeatured ? "Yes" : "No"}</span>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs sm:text-sm text-gray-600 font-semibold mb-1">Original Price (₹)</label>
-                    <input value={editing.originalPrice} onChange={(e) => setEditing({ ...editing, originalPrice: e.target.value })} className="w-full border border-gray-200 rounded px-3 py-2 text-sm" />
+                    <input value={editing.originalPrice} onChange={(e) => setEditing({ ...editing, originalPrice: e.target.value })} className={`w-full border rounded px-3 py-2 text-sm ${formErrors.originalPrice ? "border-rose-400" : "border-gray-200"}`} />
+                    {formErrors.originalPrice ? <p className="mt-1 text-xs text-rose-600">{formErrors.originalPrice}</p> : null}
                   </div>
                   <div>
                     <label className="block text-xs sm:text-sm text-gray-600 font-semibold mb-1">Sale Price (₹)</label>
-                    <input value={editing.salePrice} onChange={(e) => setEditing({ ...editing, salePrice: e.target.value })} className="w-full border border-gray-200 rounded px-3 py-2 text-sm" />
+                    <input value={editing.salePrice} onChange={(e) => setEditing({ ...editing, salePrice: e.target.value })} className={`w-full border rounded px-3 py-2 text-sm ${formErrors.salePrice ? "border-rose-400" : "border-gray-200"}`} />
+                    {formErrors.salePrice ? <p className="mt-1 text-xs text-rose-600">{formErrors.salePrice}</p> : null}
                   </div>
                 </div>
 
@@ -564,20 +943,63 @@ export default function AdminDashboard() {
                     className="w-full text-xs sm:text-sm file:mr-2 file:py-1 file:px-2 sm:file:px-3 file:rounded file:border-0 file:text-xs file:bg-rose-50 file:text-rose-700"
                     onChange={handleFileChange}
                   />
+                  <button
+                    type="button"
+                    onClick={handleRemoveThumbnailImage}
+                    className="mt-2 text-xs text-rose-700 hover:text-rose-800"
+                  >
+                    Remove thumbnail image
+                  </button>
+                  {thumbnailUploadProgress !== null ? (
+                    <p className="text-xs text-gray-500 mt-2">Thumbnail upload: {thumbnailUploadProgress}%</p>
+                  ) : null}
                 </div>
 
                 <div>
                   <label className="block text-xs sm:text-sm text-gray-600 font-semibold mb-2">Gallery Images (up to 4)</label>
                   <div className="space-y-2 mb-2">
-                    {[0, 1, 2, 3].map((idx) => (
-                      <div key={idx} className="w-full h-16 sm:h-20 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">
-                        {editing.galleryImages?.[idx] ? (
-                          <img src={editing.galleryImages[idx]} alt={`gallery-${idx}`} className="w-full h-full object-cover rounded" />
-                        ) : (
-                          `Image ${idx + 1}`
-                        )}
-                      </div>
-                    ))}
+                    {(() => {
+                      const previewImages = [...(editing.galleryImages || []), ...galleryPreviewUrls].slice(0, 4);
+                      const persistedCount = editing.galleryImages?.length || 0;
+                      return [0, 1, 2, 3].map((idx) => (
+                        <div key={idx} className="w-full bg-gray-100 rounded p-1 text-xs text-gray-400">
+                          <div className="h-16 sm:h-20 rounded flex items-center justify-center overflow-hidden">
+                            {previewImages[idx] ? (
+                              <img src={previewImages[idx]} alt={`gallery-${idx}`} className="w-full h-full object-cover rounded" />
+                            ) : (
+                              `Image ${idx + 1}`
+                            )}
+                          </div>
+                          {idx < persistedCount ? (
+                            <div className="mt-1 flex items-center justify-between gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleMoveGalleryImage(idx, idx - 1)}
+                                disabled={idx === 0}
+                                className="px-2 py-1 text-[11px] border rounded text-gray-700 disabled:opacity-40"
+                              >
+                                Left
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveGalleryImage(idx)}
+                                className="px-2 py-1 text-[11px] border rounded text-rose-700"
+                              >
+                                Remove
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleMoveGalleryImage(idx, idx + 1)}
+                                disabled={idx >= persistedCount - 1}
+                                className="px-2 py-1 text-[11px] border rounded text-gray-700 disabled:opacity-40"
+                              >
+                                Right
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                      ));
+                    })()}
                   </div>
                   <input
                     type="file"
@@ -586,6 +1008,9 @@ export default function AdminDashboard() {
                     onChange={handleGalleryFileChange}
                     className="w-full text-xs sm:text-sm file:mr-2 file:py-1 file:px-2 sm:file:px-3 file:rounded file:border-0 file:text-xs file:bg-rose-50 file:text-rose-700"
                   />
+                  {galleryUploadProgress !== null ? (
+                    <p className="text-xs text-gray-500 mt-2">Gallery upload: {galleryUploadProgress}%</p>
+                  ) : null}
                   <p className="text-xs text-gray-400 mt-2">Existing image previews are shown above. Upload new files to replace them.</p>
                 </div>
               </div>
