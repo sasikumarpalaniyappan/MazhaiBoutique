@@ -4,6 +4,8 @@ const CLOUDINARY_CLOUD_NAME =
 const CLOUDINARY_UPLOAD_PRESET =
   process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || process.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
+export const hasCloudinaryConfig = Boolean(CLOUDINARY_CLOUD_NAME && CLOUDINARY_UPLOAD_PRESET);
+
 export type CloudinaryTransformOptions = {
   width?: number;
   height?: number;

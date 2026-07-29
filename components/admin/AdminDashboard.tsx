@@ -721,13 +721,10 @@ export default function AdminDashboard() {
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <button onClick={() => router.push("/admin/orders")} className="px-3 sm:px-4 py-2 rounded border border-rose-300 bg-white text-rose-700 text-sm">Order Details</button>
+          <button onClick={() => router.push("/admin/hero-editor")} className="px-3 sm:px-4 py-2 rounded border border-rose-300 bg-white text-rose-700 text-sm">Hero Page Images</button>
           <button onClick={handleAddProduct} disabled={!hasSupabaseEnv} className="px-3 sm:px-4 py-2 rounded bg-rose-600 text-white text-sm disabled:cursor-not-allowed disabled:opacity-50">+ Add New Product</button>
         </div>
       </div>
-
-      {error ? (
-        <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div>
-      ) : null}
 
       <div className="bg-white shadow rounded overflow-hidden">
         {/* Desktop Table - Hidden on mobile */}
