@@ -82,7 +82,7 @@ export default function CheckoutPage() {
     }
 
     if (isMissingEmailJsConfig) {
-      alert("EmailJS is not configured. Set NEXT_PUBLIC_EMAILJS_SERVICE_ID, NEXT_PUBLIC_EMAILJS_TEMPLATE_ID, and NEXT_PUBLIC_EMAILJS_PUBLIC_KEY in .env.local, then restart the dev server.");
+      alert("EmailJS is not configured. Set NEXT_PUBLIC_EMAILJS_SERVICE_ID, NEXT_PUBLIC_EMAILJS_TEMPLATE_ID, and NEXT_PUBLIC_EMAILJS_PUBLIC_KEY in your environment variables (local .env.local or hosted platform settings), then redeploy/restart.");
       return;
     }
 
