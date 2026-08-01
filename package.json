@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:pdf": "node scripts/generate-project-pdf.js"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -24,6 +25,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "pdfkit": "^0.13.0"
   }
 }
