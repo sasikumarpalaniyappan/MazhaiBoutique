@@ -5,9 +5,17 @@ import { useRouter } from "next/navigation";
 import emailjs from "@emailjs/browser";
 import { useCart } from "@/components/context/CartContext";
 
-const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_YOUR_SERVICE_ID";
-const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_YOUR_TEMPLATE_ID";
-const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
+const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+const isMissingEmailJsConfig =
+  !EMAILJS_SERVICE_ID ||
+  !EMAILJS_TEMPLATE_ID ||
+  !EMAILJS_PUBLIC_KEY ||
+  EMAILJS_SERVICE_ID.includes("YOUR_SERVICE_ID") ||
+  EMAILJS_TEMPLATE_ID.includes("YOUR_TEMPLATE_ID") ||
+  EMAILJS_PUBLIC_KEY.includes("YOUR_PUBLIC_KEY");
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -73,8 +81,8 @@ export default function CheckoutPage() {
       console.error("Unable to save order:", error);
     }
 
-    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
-      alert("EmailJS is not configured. Please set your service, template, and public key.");
+    if (isMissingEmailJsConfig) {
+      alert("EmailJS is not configured. Set NEXT_PUBLIC_EMAILJS_SERVICE_ID, NEXT_PUBLIC_EMAILJS_TEMPLATE_ID, and NEXT_PUBLIC_EMAILJS_PUBLIC_KEY in .env.local, then restart the dev server.");
       return;
     }
 
