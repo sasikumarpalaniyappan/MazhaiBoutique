@@ -5,17 +5,28 @@ import { useRouter } from "next/navigation";
 import emailjs from "@emailjs/browser";
 import { useCart } from "@/components/context/CartContext";
 
-const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
-const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
-const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+// EmailJS service/template/public key are safe to expose in client code.
+const serviceIdFromEnv = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+const templateIdFromEnv = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+const publicKeyFromEnv = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+const EMAILJS_SERVICE_ID =
+  serviceIdFromEnv && !serviceIdFromEnv.includes("YOUR_SERVICE_ID")
+    ? serviceIdFromEnv
+    : "service_7dt6egj";
+const EMAILJS_TEMPLATE_ID =
+  templateIdFromEnv && !templateIdFromEnv.includes("YOUR_TEMPLATE_ID")
+    ? templateIdFromEnv
+    : "template_xfkroy2";
+const EMAILJS_PUBLIC_KEY =
+  publicKeyFromEnv && !publicKeyFromEnv.includes("YOUR_PUBLIC_KEY")
+    ? publicKeyFromEnv
+    : "cVzLRJ7k-cJz9FaxU";
 
 const isMissingEmailJsConfig =
   !EMAILJS_SERVICE_ID ||
   !EMAILJS_TEMPLATE_ID ||
-  !EMAILJS_PUBLIC_KEY ||
-  EMAILJS_SERVICE_ID.includes("YOUR_SERVICE_ID") ||
-  EMAILJS_TEMPLATE_ID.includes("YOUR_TEMPLATE_ID") ||
-  EMAILJS_PUBLIC_KEY.includes("YOUR_PUBLIC_KEY");
+  !EMAILJS_PUBLIC_KEY;
 
 export default function CheckoutPage() {
   const router = useRouter();
