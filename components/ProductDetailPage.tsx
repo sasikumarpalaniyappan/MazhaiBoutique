@@ -234,34 +234,7 @@ export default function ProductDetailPage({
             </span>
           </div>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <div className="flex items-center gap-3 rounded-2xl border border-rose-100 bg-white p-4 shadow-sm">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-700">
-                <CartIcon size={18} />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Worldwide shipping</p>
-                <p className="text-xs text-gray-500">Available</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 rounded-2xl border border-rose-100 bg-white p-4 shadow-sm">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-700">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <path d="M4 11V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v4" />
-                  <path d="M5 11h14" />
-                  <path d="M9 11v10" />
-                  <path d="M15 11v10" />
-                  <path d="M9 21h6" />
-                  <path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
-                </svg>
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Trusted product</p>
-                <p className="text-xs text-gray-500">Quality assured</p>
-              </div>
-            </div>
-          </div>
+          {/* Info boxes removed per request */}
 
           <div className="mt-6 space-y-3">
             <details className="rounded-2xl border border-rose-100 bg-white shadow-sm">

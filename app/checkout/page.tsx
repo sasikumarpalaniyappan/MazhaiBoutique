@@ -5,28 +5,16 @@ import { useRouter } from "next/navigation";
 import emailjs from "@emailjs/browser";
 import { useCart } from "@/components/context/CartContext";
 
-// EmailJS service/template/public key are safe to expose in client code.
+// EmailJS credentials are optional for local development so checkout can still complete.
 const serviceIdFromEnv = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
 const templateIdFromEnv = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
 const publicKeyFromEnv = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
-const EMAILJS_SERVICE_ID =
-  serviceIdFromEnv && !serviceIdFromEnv.includes("YOUR_SERVICE_ID")
-    ? serviceIdFromEnv
-    : "service_7dt6egj";
-const EMAILJS_TEMPLATE_ID =
-  templateIdFromEnv && !templateIdFromEnv.includes("YOUR_TEMPLATE_ID")
-    ? templateIdFromEnv
-    : "template_xfkroy2";
-const EMAILJS_PUBLIC_KEY =
-  publicKeyFromEnv && !publicKeyFromEnv.includes("YOUR_PUBLIC_KEY")
-    ? publicKeyFromEnv
-    : "cVzLRJ7k-cJz9FaxU";
+const EMAILJS_SERVICE_ID = serviceIdFromEnv && !serviceIdFromEnv.includes("YOUR_SERVICE_ID") ? serviceIdFromEnv : "";
+const EMAILJS_TEMPLATE_ID = templateIdFromEnv && !templateIdFromEnv.includes("YOUR_TEMPLATE_ID") ? templateIdFromEnv : "";
+const EMAILJS_PUBLIC_KEY = publicKeyFromEnv && !publicKeyFromEnv.includes("YOUR_PUBLIC_KEY") ? publicKeyFromEnv : "";
 
-const isMissingEmailJsConfig =
-  !EMAILJS_SERVICE_ID ||
-  !EMAILJS_TEMPLATE_ID ||
-  !EMAILJS_PUBLIC_KEY;
+const hasEmailJsConfig = Boolean(EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY);
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -92,24 +80,21 @@ export default function CheckoutPage() {
       console.error("Unable to save order:", error);
     }
 
-    if (isMissingEmailJsConfig) {
-      alert("EmailJS is not configured. Set NEXT_PUBLIC_EMAILJS_SERVICE_ID, NEXT_PUBLIC_EMAILJS_TEMPLATE_ID, and NEXT_PUBLIC_EMAILJS_PUBLIC_KEY in your environment variables (local .env.local or hosted platform settings), then redeploy/restart.");
-      return;
-    }
-
     if (order) {
       setIsSending(true);
       try {
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-          customer_name: order.customer.name,
-          customer_phone: order.customer.phone,
-          customer_email: order.customer.email || "Not provided",
-          customer_address: order.customer.address,
-          order_details: order.items
-            .map((item: any) => `${item.name} × ${item.quantity} — ₹${((Number(String(item.price).replace(/[^0-9.]/g, "")) || 0) * item.quantity).toLocaleString()}`)
-            .join("\n"),
-          grand_total: `₹${order.total.toLocaleString()}`,
-        }, EMAILJS_PUBLIC_KEY);
+        if (hasEmailJsConfig) {
+          await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            customer_name: order.customer.name,
+            customer_phone: order.customer.phone,
+            customer_email: order.customer.email || "Not provided",
+            customer_address: order.customer.address,
+            order_details: order.items
+              .map((item: any) => `${item.name} × ${item.quantity} — ₹${((Number(String(item.price).replace(/[^0-9.]/g, "")) || 0) * item.quantity).toLocaleString()}`)
+              .join("\n"),
+            grand_total: `₹${order.total.toLocaleString()}`,
+          }, EMAILJS_PUBLIC_KEY);
+        }
       } catch (error: any) {
         console.error("EmailJS send failed:", error);
         const message = error?.text || error?.message || String(error);

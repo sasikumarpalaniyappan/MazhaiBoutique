@@ -2,6 +2,15 @@
 
 Mazhai Boutique is a Next.js storefront with product browsing, cart, wishlist, checkout, auth, and an admin dashboard.
 
+## Project Documentation
+
+A full documentation package has been added in the [docs](docs/) folder, including:
+- [docs/overview.md](docs/overview.md)
+- [docs/setup.md](docs/setup.md)
+- [docs/features.md](docs/features.md)
+- [docs/deployment.md](docs/deployment.md)
+- [docs/pages/](docs/pages/)
+
 ## Getting Started
 
 Install dependencies and start the development server:
