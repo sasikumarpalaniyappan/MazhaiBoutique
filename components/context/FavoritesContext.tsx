@@ -15,6 +15,7 @@ type FavoritesContextType = {
   toggleFavorite: (productId: string) => void;
   isFavorite: (productId: string) => boolean;
   favoriteCount: number;
+  clearFavorites: () => void;
 };
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
@@ -64,6 +65,10 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  const clearFavorites = () => {
+    setFavoriteIds([]);
+  };
+
   const isFavorite = (productId: string) => favoriteIds.includes(productId);
 
   const value = useMemo(
@@ -71,6 +76,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       favoriteIds,
       toggleFavorite,
       isFavorite,
+      clearFavorites,
       favoriteCount: favoriteIds.length,
     }),
     [favoriteIds]

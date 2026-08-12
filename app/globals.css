@@ -49,3 +49,65 @@ html, body {
   color: #1a0d1a !important;
 }
 
+@media (max-width: 768px) {
+  .ai-chat-section {
+    min-height: auto !important;
+    height: auto !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .ai-chat-card {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 500px !important;
+    min-height: 500px !important;
+    max-height: 500px !important;
+    overflow: hidden !important;
+    width: min(100%, 760px) !important;
+  }
+
+  .conversation-panel {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .ai-chat-content {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .ai-chat-scroll {
+    flex: 1 1 auto !important;
+    min-height: 120px;
+    min-height: 0 !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow-y: auto !important;
+  }
+
+  .ai-chat-composer {
+    margin-top: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .ai-chat-quick-buttons {
+    display: none !important;
+  }
+
+  .ai-chat-quick-button {
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+    padding-inline: 12px !important;
+    padding-block: 6px !important;
+    min-height: 30px !important;
+  }
+}
+

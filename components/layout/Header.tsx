@@ -28,6 +28,7 @@ export default function Header() {
     { label: "Home", href: "/#home" },
     { label: "Collections", href: "/#featured" },
     { label: "Featured", href: "/#featured" },
+    { label: "AI Assistance", href: "/ai-assistance" },
     { label: "About", href: "/#about" },
     { label: "Contact", href: "/#contact" },
   ];
@@ -35,14 +36,27 @@ export default function Header() {
   useEffect(() => {
     const updateActive = () => {
       const hash = (typeof window !== "undefined" && window.location.hash.replace("#", "")) || "home";
-      const found = navItems.find((n) => n.href.endsWith(hash));
+
+      if (pathname === "/ai-assistance") {
+        setActiveNav("AI Assistance");
+        return;
+      }
+
+      const found = navItems.find((n) => {
+        if (n.href.startsWith("/#")) {
+          return n.href.endsWith(hash) || n.href === `/#${hash}`;
+        }
+
+        return n.href === pathname;
+      });
+
       setActiveNav(found?.label ?? "Home");
     };
 
     updateActive();
     window.addEventListener("hashchange", updateActive);
     return () => window.removeEventListener("hashchange", updateActive);
-  }, []);
+  }, [pathname]);
 
   const totalCartItems = cartItems.reduce((total, item) => total + item.quantity, 0);
   const visibleFavoriteIds = favoriteIds.filter((favoriteId) =>

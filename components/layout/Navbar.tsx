@@ -14,6 +14,9 @@ export default function Navbar() {
           <Link href="/#featured">Featured</Link>
         </li>
         <li className="hover:text-rose-700 cursor-pointer transition">
+          <Link href="/ai-assistance">AI Assistance</Link>
+        </li>
+        <li className="hover:text-rose-700 cursor-pointer transition">
           <Link href="/#about">About</Link>
         </li>
         <li className="hover:text-rose-700 cursor-pointer transition">
