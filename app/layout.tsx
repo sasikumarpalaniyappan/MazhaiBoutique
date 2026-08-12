@@ -1,6 +1,7 @@
 import "./globals.css";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import FloatingChatIcon from "../components/layout/FloatingChatIcon";
 import { CartProvider } from "@/components/context/CartContext";
 import { FavoritesProvider } from "@/components/context/FavoritesContext";
 import { ProductsProvider } from "@/components/context/ProductsContext";
@@ -43,6 +44,7 @@ export default function RootLayout({
           {children}
         </main>
 
+        <FloatingChatIcon />
         <Footer />
       </ProductsProvider>
     </FavoritesProvider>

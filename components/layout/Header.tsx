@@ -28,7 +28,6 @@ export default function Header() {
     { label: "Home", href: "/#home" },
     { label: "Collections", href: "/#featured" },
     { label: "Featured", href: "/#featured" },
-    { label: "AI Assistance", href: "/ai-assistance" },
     { label: "About", href: "/#about" },
     { label: "Contact", href: "/#contact" },
   ];
@@ -36,11 +35,6 @@ export default function Header() {
   useEffect(() => {
     const updateActive = () => {
       const hash = (typeof window !== "undefined" && window.location.hash.replace("#", "")) || "home";
-
-      if (pathname === "/ai-assistance") {
-        setActiveNav("AI Assistance");
-        return;
-      }
 
       const found = navItems.find((n) => {
         if (n.href.startsWith("/#")) {
