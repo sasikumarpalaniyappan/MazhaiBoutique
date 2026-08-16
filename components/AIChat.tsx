@@ -27,8 +27,8 @@ type ChatAction = "add_to_cart" | "add_to_wishlist" | "clear_cart" | "empty_wish
 
 export default function AIChat() {
   const STORAGE_KEY = "mazhai-boutique-chat-history";
-  const { addToCart, clearCart } = useCart();
-  const { toggleFavorite, clearFavorites } = useFavorites();
+  const { addToCart, removeFromCart, clearCart } = useCart();
+  const { toggleFavorite, clearFavorites, isFavorite } = useFavorites();
   
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -40,10 +40,27 @@ export default function AIChat() {
 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"clear_cart" | "clear_wishlist" | null>(null);
   const messageListRef = useRef<HTMLDivElement | null>(null);
+  const isNearBottomRef = useRef(true);
   const [isHydrated, setIsHydrated] = useState(false);
   const [recentProducts, setRecentProducts] = useState<ChatProduct[]>([]);
   const isMountedRef = useRef(true);
+
+  const getHistoryForApi = (currentMessages: ChatMessage[]) =>
+    currentMessages
+      .filter((message) => {
+        const isWelcomeMessage =
+          message.role === "assistant" &&
+          message.content.startsWith("Welcome to Mazhai Boutique");
+
+        return !isWelcomeMessage && Boolean(message.content?.trim());
+      })
+      .map(({ role, content, products }) => ({
+        role,
+        content,
+        products: products && products.length > 0 ? products : undefined,
+      }));
 
   // Load messages from localStorage on mount
   useEffect(() => {
@@ -79,16 +96,141 @@ export default function AIChat() {
   }, [messages, isHydrated]);
 
   useEffect(() => {
-    if (messageListRef.current) {
-      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+    const container = messageListRef.current;
+    if (!container) {
+      return;
+    }
+
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= 120;
+    if (isNearBottomRef.current && isNearBottom) {
+      container.scrollTop = container.scrollHeight;
     }
   }, [messages, loading]);
+
+  const handleConversationScroll = () => {
+    const container = messageListRef.current;
+    if (!container) {
+      return;
+    }
+
+    isNearBottomRef.current = container.scrollHeight - container.scrollTop - container.clientHeight <= 120;
+  };
+
+  const isConfirmationMessage = (message: string) => {
+    const normalized = message.trim().toLowerCase();
+    return [
+      "yes",
+      "yes please",
+      "confirm",
+      "do it",
+      "clear it",
+      "yes, clear my cart",
+      "yes, clear my wishlist",
+    ].includes(normalized);
+  };
+
+  const resolveProductReference = (message: string, candidateProducts: ChatProduct[]) => {
+    const normalizedMessage = message.toLowerCase();
+
+    if (candidateProducts.length === 0) {
+      return null;
+    }
+
+    const firstMatch = /\bfirst\b|\b1st\b/.test(normalizedMessage) ? candidateProducts[0] : null;
+    const secondMatch = /\bsecond\b|\b2nd\b/.test(normalizedMessage) ? candidateProducts[1] ?? candidateProducts[0] : null;
+    const thirdMatch = /\bthird\b|\b3rd\b/.test(normalizedMessage) ? candidateProducts[2] ?? candidateProducts[0] : null;
+
+    if (firstMatch) {
+      return firstMatch;
+    }
+
+    if (secondMatch) {
+      return secondMatch;
+    }
+
+    if (thirdMatch) {
+      return thirdMatch;
+    }
+
+    const explicitReference = normalizedMessage.includes("this") || normalizedMessage.includes("that") || normalizedMessage.includes("it");
+    const recentProduct = explicitReference ? candidateProducts[0] : null;
+
+    const exactMatch = candidateProducts.find((product) => {
+      const title = product.title.toLowerCase();
+      const cleanedMessage = normalizedMessage
+        .replace(/\b(this|that|it|product|item|saree|dress|to|my|cart|wishlist|add|remove|first|second|third|one)\b/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return normalizedMessage.includes(title) || title.includes(cleanedMessage) || cleanedMessage.includes(title);
+    });
+
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    const keywordMatches = candidateProducts.filter((product) => {
+      const title = product.title.toLowerCase();
+      return Array.from(new Set(title.split(/[^a-z]+/).filter(Boolean))).some((word) =>
+        normalizedMessage.includes(word) && word.length > 2
+      );
+    });
+
+    if (keywordMatches.length === 1) {
+      return keywordMatches[0];
+    }
+
+    if (recentProduct && explicitReference) {
+      return recentProduct;
+    }
+
+    if (candidateProducts.length === 1) {
+      return candidateProducts[0];
+    }
+
+    return null;
+  };
 
   const sendMessage = async (nextPrompt: string) => {
     const trimmed = nextPrompt.trim();
 
     if (!trimmed || loading) {
       return;
+    }
+
+    if (pendingAction && isConfirmationMessage(trimmed)) {
+      const action = pendingAction;
+      setPendingAction(null);
+
+      if (action === "clear_cart") {
+        clearCart();
+        if (isMountedRef.current) {
+          setMessages((current) => [
+            ...current,
+            {
+              role: "assistant",
+              content: "Your cart has been cleared successfully. 🛒",
+            },
+          ]);
+        }
+        setLoading(false);
+        return;
+      }
+
+      if (action === "clear_wishlist") {
+        clearFavorites();
+        if (isMountedRef.current) {
+          setMessages((current) => [
+            ...current,
+            {
+              role: "assistant",
+              content: "Your wishlist has been cleared successfully. ❤️",
+            },
+          ]);
+        }
+        setLoading(false);
+        return;
+      }
     }
 
     const userMessage: ChatMessage = {
@@ -105,6 +247,8 @@ export default function AIChat() {
     }
 
     try {
+      const history = getHistoryForApi(messages);
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -112,6 +256,7 @@ export default function AIChat() {
         },
         body: JSON.stringify({
           message: trimmed,
+          history,
         }),
       });
 
@@ -139,10 +284,30 @@ export default function AIChat() {
         return;
       }
 
-      // Use data.products directly to avoid state timing issues
       const productsToUse = Array.isArray(data.products) ? data.products : [];
 
-      const actionCommands = ["add_to_cart", "add_to_wishlist", "clear_cart", "empty_wishlist"];
+      if (data.requiresConfirmation && (data.action === "clear_cart" || data.action === "clear_wishlist")) {
+        setPendingAction(data.action);
+        if (isMountedRef.current) {
+          setMessages((current) => [
+            ...current,
+            {
+              role: "assistant",
+              content: data.reply || "Are you sure? Please say 'yes' to confirm.",
+            },
+          ]);
+        }
+        return;
+      }
+
+      const actionCommands = [
+        "add_to_cart",
+        "remove_from_cart",
+        "clear_cart",
+        "add_to_wishlist",
+        "remove_from_wishlist",
+        "clear_wishlist",
+      ];
       const isAction = actionCommands.includes(data.action || "");
       const shouldShowProducts = !isAction;
       const productsToDisplay = shouldShowProducts ? productsToUse : [];
@@ -150,15 +315,19 @@ export default function AIChat() {
       let finalReply = data.reply;
       if (isAction) {
         if (data.action === "add_to_cart") {
-          finalReply = "Product added to your cart.";
-        } else if (data.action === "add_to_wishlist") {
-          finalReply = "Product added to your wishlist.";
+          finalReply = data.reply || "Product added to your cart.";
+        } else if (data.action === "remove_from_cart") {
+          finalReply = data.reply || "The item has been removed from your cart.";
         } else if (data.action === "clear_cart") {
-          finalReply = "Your cart has been cleared!";
-        } else if (data.action === "empty_wishlist") {
-          finalReply = "Your wishlist has been emptied!";
+          finalReply = data.reply || "Your cart has been cleared.";
+        } else if (data.action === "add_to_wishlist") {
+          finalReply = data.reply || "Product added to your wishlist.";
+        } else if (data.action === "remove_from_wishlist") {
+          finalReply = data.reply || "The item has been removed from your wishlist.";
+        } else if (data.action === "clear_wishlist") {
+          finalReply = data.reply || "Your wishlist has been cleared.";
         } else {
-          finalReply = "Action completed successfully.";
+          finalReply = data.reply || "Action completed successfully.";
         }
       } else if (!isAction && productsToUse.length > 0) {
         const summaryProducts = productsToUse.slice(0, 3).map((product: ChatProduct) => {
@@ -217,95 +386,88 @@ export default function AIChat() {
         return bestMatch?.product || availableProducts[0]!; // Default to first if no match
       };
 
-      // Handle action commands
       if (data.action) {
         let actionMessage = "";
         let targetProductName = "";
 
         try {
-          if (data.action === "add_to_cart" && productsToUse.length > 0) {
-            try {
-              const targetProduct = findMatchingProduct(input, productsToUse);
+          const candidateProducts = [...productsToUse, ...recentProducts];
+
+          if (data.action === "add_to_cart") {
+            const targetProduct = resolveProductReference(trimmed, candidateProducts);
+
+            if (!targetProduct) {
+              actionMessage = "I couldn't find that product. Could you tell me the product name?";
+            } else {
               targetProductName = targetProduct.title;
-              addToCart({
-                id: targetProduct.id,
-                name: targetProduct.title,
-                price: targetProduct.salePrice || targetProduct.price,
-                image: targetProduct.image,
-              });
-              actionMessage = ` I've added ${targetProduct.title} to your cart!`;
-            } catch (e) {
-              console.error("Error finding product for cart:", e);
+              const quantity = Number(data.quantity) > 0 ? Number(data.quantity) : 1;
+              addToCart(
+                {
+                  id: targetProduct.id,
+                  name: targetProduct.title,
+                  price: targetProduct.salePrice || targetProduct.price,
+                  image: targetProduct.image,
+                },
+                quantity
+              );
+              actionMessage = `${targetProduct.title} has been added to your cart. 🛍️`;
             }
-          } else if (data.action === "add_to_wishlist" && productsToUse.length > 0) {
-            try {
-              const targetProduct = findMatchingProduct(input, productsToUse);
+          } else if (data.action === "remove_from_cart") {
+            const targetProduct = resolveProductReference(trimmed, candidateProducts);
+
+            if (!targetProduct) {
+              actionMessage = "I couldn't find that product in your cart. Could you tell me the product name?";
+            } else {
               targetProductName = targetProduct.title;
-              toggleFavorite(targetProduct.id);
-              actionMessage = ` I've added ${targetProduct.title} to your wishlist!`;
-            } catch (e) {
-              console.error("Error finding product for wishlist:", e);
+              removeFromCart(targetProduct.id);
+              actionMessage = `${targetProduct.title} has been removed from your cart.`;
             }
           } else if (data.action === "clear_cart") {
             clearCart();
-            actionMessage = " Your cart has been cleared!";
+            actionMessage = "Your cart has been cleared successfully. 🛒";
             targetProductName = "Cart";
-          } else if (data.action === "empty_wishlist") {
-            // Clear all favorites using the context function
-            try {
-              clearFavorites();
-              actionMessage = " Your wishlist has been emptied!";
-              targetProductName = "Wishlist";
-            } catch (e) {
-              console.error("Error clearing wishlist:", e);
+          } else if (data.action === "add_to_wishlist") {
+            const targetProduct = resolveProductReference(trimmed, candidateProducts);
+
+            if (!targetProduct) {
+              actionMessage = "I couldn't find that product. Could you tell me the product name?";
+            } else {
+              targetProductName = targetProduct.title;
+              if (!isFavorite(targetProduct.id)) {
+                toggleFavorite(targetProduct.id);
+              }
+              actionMessage = `${targetProduct.title} has been added to your wishlist. ❤️`;
             }
+          } else if (data.action === "remove_from_wishlist") {
+            const targetProduct = resolveProductReference(trimmed, candidateProducts);
+
+            if (!targetProduct) {
+              actionMessage = "I couldn't find that product in your wishlist. Could you tell me the product name?";
+            } else {
+              targetProductName = targetProduct.title;
+              if (isFavorite(targetProduct.id)) {
+                toggleFavorite(targetProduct.id);
+              }
+              actionMessage = `${targetProduct.title} has been removed from your wishlist.`;
+            }
+          } else if (data.action === "clear_wishlist") {
+            clearFavorites();
+            actionMessage = "Your wishlist has been cleared successfully. ❤️";
+            targetProductName = "Wishlist";
           }
         } catch (e) {
           console.error("Error executing action:", e);
+          actionMessage = "I couldn't complete that action. Please try again.";
         }
 
-        // Append action message to the reply
         if (actionMessage) {
-          if (shouldShowProducts) {
-            assistantMessage.content = actionMessage.trim();
-          } else {
-            assistantMessage.content = actionMessage.trim();
-          }
+          assistantMessage.content = actionMessage.trim();
         }
 
-        // Generate success message based on action type
-        let successMessage = "";
-        if (data.action === "add_to_cart" && targetProductName) {
-          successMessage = `✓ ${targetProductName} added to cart successfully`;
-        } else if (data.action === "add_to_wishlist" && targetProductName) {
-          successMessage = `✓ ${targetProductName} added to wishlist successfully`;
-        } else if (data.action === "clear_cart") {
-          successMessage = `✓ Cart cleared successfully`;
-        } else if (data.action === "empty_wishlist") {
-          successMessage = `✓ Wishlist emptied successfully`;
-        }
-
-        // Add the main AI response first
         if (isMountedRef.current) {
           setMessages((current) => [...current, assistantMessage]);
         }
-
-        // Then add the automated success message
-        if (successMessage) {
-          const timeoutId = setTimeout(() => {
-            if (isMountedRef.current) {
-              setMessages((current) => [
-                ...current,
-                {
-                  role: "assistant",
-                  content: successMessage,
-                },
-              ]);
-            }
-          }, 300); // Small delay for visual separation
-        }
       } else {
-        // No action, just add the assistant message
         if (isMountedRef.current) {
           setMessages((current) => [...current, assistantMessage]);
         }
@@ -360,6 +522,7 @@ export default function AIChat() {
           <div className="ai-chat-content flex min-h-0 flex-1 flex-col">
             <div
               ref={messageListRef}
+              onScroll={handleConversationScroll}
               className="ai-chat-scroll min-h-[120px] min-h-0 flex-1 overflow-y-auto px-4 py-3"
             >
               {messages.map((message, index) => (
