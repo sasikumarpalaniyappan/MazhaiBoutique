@@ -89,7 +89,7 @@ export default function Header() {
                         <Link
                           href={item.href}
                           onClick={() => handleNavClick(item.label)}
-                          className={`inline-flex items-center justify-center rounded-full px-3 lg:px-5 py-2 text-xs lg:text-sm font-medium transition-shadow whitespace-nowrap ${
+                          className={`inline-flex items-center justify-center rounded-full px-3 lg:px-5 py-2 text-xs lg:text-sm font-medium whitespace-nowrap transition-all duration-200 motion-safe:hover:-translate-y-0.5 hover:scale-105 active:scale-95 ${
                               isActive
                                 ? "bg-rose-700 text-white shadow-lg"
                                 : "bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md"
@@ -108,9 +108,9 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => setIsFavoritesOpen(true)}
-                  className="relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-shadow bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md flex-shrink-0"
+                  className="group relative flex h-9 sm:h-10 w-9 sm:w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-rose-200 bg-rose-50 px-1.5 sm:px-2 text-sm font-medium text-rose-700 transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-95"
                 >
-                  <HeartIcon size={16} strokeClass="stroke-rose-700" fillClass="fill-rose-100" />
+                  <HeartIcon className="motion-safe:group-hover:animate-bounce motion-reduce:animate-none" size={16} strokeClass="stroke-rose-700" fillClass="fill-rose-100" />
                   {totalWishlistItems > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-900 px-1 text-xs text-white">
                       {totalWishlistItems}
@@ -121,11 +121,11 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => setIsCartOpen(true)}
-                  className={`relative flex h-9 sm:h-10 w-9 sm:w-10 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-shadow flex-shrink-0 ${
+                  className={`group relative flex h-9 sm:h-10 w-9 sm:w-10 flex-shrink-0 items-center justify-center rounded-full px-1.5 sm:px-2 text-sm font-medium transition-all duration-200 hover:scale-110 active:scale-95 ${
                     isCartOpen ? "bg-rose-700 text-white shadow-lg" : "bg-rose-50 border-2 border-rose-200 text-rose-700 hover:shadow-md"
                   }`}
                 >
-                  <CartIcon size={18} />
+                  <CartIcon className="motion-safe:group-hover:animate-bounce motion-reduce:animate-none" size={18} />
                   {totalCartItems > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-900 px-1 text-xs text-white">
                       {totalCartItems}
@@ -137,7 +137,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="md:hidden flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 border-2 border-rose-200 text-rose-700 flex-shrink-0"
+                  className="md:hidden flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border-2 border-rose-200 bg-rose-50 text-rose-700 transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-95"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
@@ -159,7 +159,7 @@ export default function Header() {
                     <Link
                       href={item.href}
                       onClick={() => handleNavClick(item.label)}
-                      className={`block px-4 py-2.5 text-sm font-medium transition-colors ${
+                      className={`block px-4 py-2.5 text-sm font-medium transition-all duration-200 motion-safe:hover:translate-x-1 ${
                           isActive
                             ? "bg-rose-50 text-rose-700 border-l-4 border-rose-700"
                             : "text-gray-700 hover:bg-rose-50"
@@ -225,5 +225,4 @@ export default function Header() {
     </header>
   );
 }
-
 

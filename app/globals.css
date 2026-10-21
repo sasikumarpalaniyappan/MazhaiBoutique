@@ -39,6 +39,55 @@ body {
   font-weight: 400;
 }
 
+@keyframes site-button-pop {
+  0% {
+    transform: scale(1);
+  }
+  65% {
+    transform: translateY(-2px) scale(1.06);
+  }
+  100% {
+    transform: translateY(-1px) scale(1.03);
+  }
+}
+
+button:not(:disabled):hover,
+button:not(:disabled):focus-visible,
+[role="button"]:not([aria-disabled="true"]):hover,
+[role="button"]:not([aria-disabled="true"]):focus-visible {
+  animation: site-button-pop 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled):hover,
+  button:not(:disabled):focus-visible,
+  [role="button"]:not([aria-disabled="true"]):hover,
+  [role="button"]:not([aria-disabled="true"]):focus-visible {
+    animation: none;
+  }
+}
+
+@keyframes favorite-popup-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.product-favorite-popup {
+  animation: favorite-popup-in 180ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-favorite-popup {
+    animation: none;
+  }
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   letter-spacing: -0.5px;
@@ -110,4 +159,3 @@ html, body {
     min-height: 30px !important;
   }
 }
-

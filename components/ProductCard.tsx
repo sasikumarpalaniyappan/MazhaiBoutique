@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useFavorites } from "@/components/context/FavoritesContext";
 
@@ -26,6 +27,7 @@ export default function ProductCard({
   salePrice,
 }: ProductCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
+  const [favoriteFeedback, setFavoriteFeedback] = useState<boolean | null>(null);
   const idString = String(id);
   const favorite = isFavorite(idString);
   const discountPercent =
@@ -38,9 +40,16 @@ export default function ProductCard({
         )
       : null;
 
+  useEffect(() => {
+    if (favoriteFeedback === null) return;
+
+    const timeout = window.setTimeout(() => setFavoriteFeedback(null), 1400);
+    return () => window.clearTimeout(timeout);
+  }, [favoriteFeedback]);
+
   return (
     <Link href={`/products/${id}`} className="group block">
-      <div className="relative bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition duration-300">
+      <div className="relative overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 ease-out motion-safe:hover:-translate-y-1 hover:shadow-xl">
         <button
           type="button"
           aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
@@ -48,13 +57,25 @@ export default function ProductCard({
             event.preventDefault();
             event.stopPropagation();
             toggleFavorite(idString);
+            setFavoriteFeedback(!favorite);
           }}
-          className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm shadow-sm transition hover:scale-105"
+          className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition duration-200 hover:scale-110 active:scale-95"
         >
-          <span className={`text-xl ${favorite ? "text-rose-700" : "text-rose-500"}`}>
+          <span className={`text-xl transition-transform duration-200 ${favoriteFeedback !== null ? "scale-125 motion-safe:animate-bounce" : "scale-100"} ${favorite ? "text-rose-700" : "text-rose-500"}`}>
             {favorite ? "❤" : "♡"}
           </span>
         </button>
+        {favoriteFeedback !== null && (
+          <div
+            role="status"
+            className="product-favorite-popup absolute right-3 top-16 z-10 flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-rose-800 shadow-md"
+          >
+            <span aria-hidden="true" className="text-sm text-rose-600">
+              {favoriteFeedback ? "♥" : "♡"}
+            </span>
+            {favoriteFeedback ? "Added to favorites" : "Removed from favorites"}
+          </div>
+        )}
         
         {/* Clickable Product Image */}
         <div className="cursor-pointer">
@@ -62,10 +83,10 @@ export default function ProductCard({
             <img
               src={image}
               alt={name}
-              className="w-full h-80 object-cover"
+              className="h-56 w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105 sm:h-80"
             />
           ) : (
-            <div className="w-full h-80 bg-gray-100 flex items-center justify-center text-sm text-gray-500 rounded-t-xl">
+            <div className="flex h-56 w-full items-center justify-center rounded-t-xl bg-gray-100 text-sm text-gray-500 sm:h-80">
               No image available
             </div>
           )}
@@ -99,5 +120,3 @@ export default function ProductCard({
     </Link>
   );
 }
-
-
