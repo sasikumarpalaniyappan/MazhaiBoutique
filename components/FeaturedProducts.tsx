@@ -34,7 +34,7 @@ export default function FeaturedProducts() {
           No products available in this collection yet.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
           {visibleProducts.map((product) => (
             <ProductCard
               key={product.id}
