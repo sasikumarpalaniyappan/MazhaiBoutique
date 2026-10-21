@@ -3,6 +3,7 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import FloatingChatIcon from "../components/layout/FloatingChatIcon";
 import MobileBottomNav from "../components/layout/MobileBottomNav";
+import WelcomeIntro from "../components/layout/WelcomeIntro";
 import { CartProvider } from "@/components/context/CartContext";
 import { FavoritesProvider } from "@/components/context/FavoritesContext";
 import { ProductsProvider } from "@/components/context/ProductsContext";
@@ -39,6 +40,7 @@ export default function RootLayout({
   <CartProvider>
     <FavoritesProvider>
       <ProductsProvider>
+        <WelcomeIntro />
         <Header />
 
         <main className="scroll-smooth pt-20 pb-20 sm:pt-[100px] md:pb-0">
