@@ -22,7 +22,6 @@ export default function Header() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Home");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { label: "Home", href: "/#home" },
@@ -65,7 +64,6 @@ export default function Header() {
 
   const handleNavClick = (label: string) => {
     setActiveNav(label);
-    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -133,46 +131,11 @@ export default function Header() {
                   )}
                 </button>
 
-                {/* Mobile Menu Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="md:hidden flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border-2 border-rose-200 bg-rose-50 text-rose-700 transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-95"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-                  </svg>
-                </button>
               </div>
             </>
           )}
         </div>
 
-        {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
-          <nav className="md:hidden border-t border-rose-100 bg-white">
-            <ul className="flex flex-col py-3">
-              {navItems.map((item) => {
-                const isActive = activeNav === item.label;
-                return (
-                  <li key={item.label}>
-                    <Link
-                      href={item.href}
-                      onClick={() => handleNavClick(item.label)}
-                      className={`block px-4 py-2.5 text-sm font-medium transition-all duration-200 motion-safe:hover:translate-x-1 ${
-                          isActive
-                            ? "bg-rose-50 text-rose-700 border-l-4 border-rose-700"
-                            : "text-gray-700 hover:bg-rose-50"
-                        }`}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-        )}
       </div>
 
       {!isAdminPage && <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />}
@@ -225,4 +188,3 @@ export default function Header() {
     </header>
   );
 }
-
