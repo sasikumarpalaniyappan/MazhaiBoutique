@@ -83,10 +83,10 @@ export default function ProductCard({
             <img
               src={image}
               alt={name}
-              className="h-56 w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105 sm:h-80"
+              className="h-80 w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-56 w-full items-center justify-center rounded-t-xl bg-gray-100 text-sm text-gray-500 sm:h-80">
+            <div className="h-80 w-full rounded-t-xl bg-gray-100 flex items-center justify-center text-sm text-gray-500">
               No image available
             </div>
           )}

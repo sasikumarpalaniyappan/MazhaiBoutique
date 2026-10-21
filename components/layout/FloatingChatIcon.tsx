@@ -6,7 +6,7 @@ export default function FloatingChatIcon() {
   return (
     <Link
       href="/ai-assistance"
-      className="fixed bottom-20 right-4 z-40 flex items-center justify-center rounded-full bg-rose-700 p-4 text-white shadow-lg transition-all duration-300 hover:scale-110 hover:bg-rose-800 sm:bottom-6 sm:right-6"
+      className="fixed bottom-6 right-6 z-40 bg-rose-700 hover:bg-rose-800 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center"
       title="AI Assistance Chat"
     >
       <span className="text-lg font-bold tracking-wide">Ask AI</span>

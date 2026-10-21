@@ -24,7 +24,7 @@ export default function ProductsIndex() {
   const visibleProducts = products;
 
   return (
-    <div className="mx-auto max-w-6xl px-2 py-24 sm:px-6 lg:py-32">
+    <div className="mx-auto max-w-6xl px-6 py-24 lg:py-32">
       <h1 className="text-3xl font-semibold text-center text-rose-700">Our Collections</h1>
 
       {error ? (
@@ -41,7 +41,7 @@ export default function ProductsIndex() {
           No products available in this collection yet.
         </div>
       ) : (
-        <div className="mt-10 grid grid-cols-2 gap-x-1 gap-y-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {visibleProducts.map((product) => {
             const discountPercent = calculateDiscountPercent(
               product.originalPrice,
@@ -52,18 +52,18 @@ export default function ProductsIndex() {
               <Link
                 key={product.id}
                 href={`/products/${product.id}`}
-                className="group block rounded-xl border p-4 hover:shadow-lg max-sm:rounded-none max-sm:border-0 max-sm:p-0 max-sm:hover:shadow-none"
+                className="group block rounded-xl border p-4 hover:shadow-lg"
               >
                 <img
                   src={product.thumbnailImage || product.image || ""}
                   alt={product.title}
-                  className="aspect-[3/4] h-auto w-full rounded-md object-cover sm:aspect-auto sm:h-[600px]"
+                  className="h-[520px] w-full rounded-md object-cover sm:h-[600px]"
                 />
-                <h2 className="mt-2 line-clamp-1 text-sm font-medium text-gray-800 group-hover:text-rose-700 sm:mt-3 sm:line-clamp-none sm:text-base">
+                <h2 className="mt-3 font-medium text-gray-800 group-hover:text-rose-700">
                   {product.title}
                 </h2>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <p className="text-base font-semibold text-rose-700 sm:text-lg">
+                  <p className="text-rose-700 font-semibold text-lg">
                     {formatPriceLabel(product.salePrice || product.originalPrice)}
                   </p>
                   {product.salePrice && product.originalPrice ? (
